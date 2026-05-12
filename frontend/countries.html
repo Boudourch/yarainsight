@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>Yara Insights | Sovereign Dashboard</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="css/countries.style.css">
+</head>
+<body>
+<div class="container">
+
+    <!-- NAVBAR -->
+    <div class="navbar">
+        <div class="logo">
+            <div class="logo-icon"><i class="fas fa-chart-line"></i></div>
+            <span class="logo-text">Yara Insights</span>
+        </div>
+
+        <div class="nav-actions">
+            <div class="sidebar-wrap">
+                <button id="sidebar-toggle-btn" class="sidebar-toggle-btn" type="button" aria-label="Open menu">
+                    <i class="fas fa-bars"></i>
+                    <span>Menu</span>
+                </button>
+
+                <div id="dash-sidebar" class="dash-sidebar" aria-hidden="true">
+                    <div class="dash-sidebar-title">
+                        <i class="fas fa-layer-group"></i>
+                        <span>Navigation</span>
+                    </div>
+
+                    <button type="button" class="dash-sidebar-link" data-target="dashboards">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Dashboards</span>
+                    </button>
+
+                    <button type="button" class="dash-sidebar-link" data-target="prediction">
+                        <i class="fas fa-brain"></i>
+                        <span>Prediction</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- MON PROFIL button -->
+            <button id="profile-btn" class="btn-profile">
+                <div class="avatar-circle" id="nav-avatar">?</div>
+                <span id="nav-username">Mon Profil</span>
+                <i class="fas fa-chevron-down" style="font-size:10px;opacity:0.6;"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- HEADER -->
+    <div class="header-section">
+        <h1>Sovereign Nations Dashboard</h1>
+        <div class="header-stats">
+            <div class="stat-chip">
+                <i class="fas fa-chart-simple"></i>
+                <span>Sovereign Indicators</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="status"></div>
+
+    <!-- SEARCH & SELECT -->
+    <div class="select-wrapper">
+        <input type="text" id="search-input" class="search-input"
+               placeholder="Search by name or IOC code (e.g., TUN, FRA, USA)...">
+        <select id="country-select">
+            <option value="">-- Select a country --</option>
+        </select>
+    </div>
+
+    <div id="dashboard"></div>
+
+    <!-- FOOTER -->
+    <div class="footer-note">
+        <span><i class="fas fa-chart-line"></i> Live Data</span>
+        <span><i class="fas fa-globe"></i> 17 Key Indicators</span>
+        <span><i class="fas fa-chart-pie"></i> Comparative Analysis</span>
+    </div>
+</div>
+
+<!-- PROFILE MODAL -->
+<div id="profile-overlay" class="profile-overlay">
+    <div class="profile-modal">
+        <div class="pm-header">
+            <div class="pm-header-left">
+                <div class="pm-avatar" id="pm-avatar-icon">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div>
+                    <div class="pm-name" id="pm-fullname">—</div>
+                    <div class="pm-role" id="pm-role-badge">—</div>
+                </div>
+            </div>
+            <button class="pm-close" onclick="closeProfileModal()">
+                <i class="fas fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="pm-info">
+            <div class="pm-info-item">
+                <div class="pm-info-label">Email</div>
+                <div class="pm-info-value highlight" id="pm-email">—</div>
+            </div>
+            <div class="pm-info-item">
+                <div class="pm-info-label">Phone</div>
+                <div class="pm-info-value" id="pm-phone">—</div>
+            </div>
+            <div class="pm-info-item">
+                <div class="pm-info-label">Member since</div>
+                <div class="pm-info-value" id="pm-since">—</div>
+            </div>
+            <div class="pm-info-item">
+                <div class="pm-info-label">Account status</div>
+                <div class="pm-info-value" id="pm-status">—</div>
+            </div>
+        </div>
+
+        <div class="pm-tabs">
+            <div class="pm-tab active" onclick="switchTab('email')">
+                <i class="fas fa-envelope" style="margin-right:6px;font-size:11px;"></i>Change Email
+            </div>
+            <div class="pm-tab" onclick="switchTab('password')">
+                <i class="fas fa-lock" style="margin-right:6px;font-size:11px;"></i>Change Password
+            </div>
+        </div>
+
+        <div id="tab-email" class="pm-tab-content active">
+            <div id="msg-email" class="pm-message"></div>
+            <div class="pm-field">
+                <label>New Email Address</label>
+                <div class="pm-input-wrap">
+                    <input type="email" id="new-email" class="pm-input" placeholder="new@email.com">
+                    <i class="fas fa-envelope"></i>
+                </div>
+            </div>
+            <div class="pm-field">
+                <label>Current Password (required to confirm)</label>
+                <div class="pm-input-wrap">
+                    <input type="password" id="confirm-pass-email" class="pm-input" placeholder="Your current password">
+                    <i class="fas fa-lock"></i>
+                </div>
+            </div>
+            <div class="pm-btn-row">
+                <button class="pm-btn pm-btn-primary" onclick="updateEmail()" id="btn-update-email">
+                    <i class="fas fa-check"></i> Update Email
+                </button>
+                <button class="pm-btn pm-btn-danger" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+
+        <div id="tab-password" class="pm-tab-content">
+            <div id="msg-password" class="pm-message"></div>
+            <div class="pm-field">
+                <label>Current Password</label>
+                <div class="pm-input-wrap">
+                    <input type="password" id="current-password" class="pm-input" placeholder="Your current password">
+                    <i class="fas fa-lock"></i>
+                </div>
+            </div>
+            <div class="pm-field">
+                <label>New Password</label>
+                <div class="pm-input-wrap">
+                    <input type="password" id="new-password" class="pm-input" placeholder="New password (min. 6 characters)">
+                    <i class="fas fa-key"></i>
+                </div>
+            </div>
+            <div class="pm-field">
+                <label>Confirm New Password</label>
+                <div class="pm-input-wrap">
+                    <input type="password" id="confirm-new-password" class="pm-input" placeholder="Repeat new password">
+                    <i class="fas fa-shield-halved"></i>
+                </div>
+            </div>
+            <div class="pm-btn-row">
+                <button class="pm-btn pm-btn-primary" onclick="updatePassword()" id="btn-update-password">
+                    <i class="fas fa-check"></i> Update Password
+                </button>
+                <button class="pm-btn pm-btn-danger" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CHATBOT -->
+<button class="chatbot-btn" id="chatbotBtn" title="Chat with YARABOT">
+    <i class="fas fa-robot"></i>
+</button>
+
+<div class="chatbot-window" id="chatbotWindow">
+    <div class="chatbot-header">
+        <div class="chatbot-header-left">
+            <div class="chatbot-avatar"><i class="fas fa-microchip"></i></div>
+            <div class="chatbot-header-info">
+                <div class="chatbot-title">Yara Bot</div>
+                <div class="chatbot-status">
+                    <span class="online-dot"></span>
+                    YARABOT · Always here
+                </div>
+            </div>
+        </div>
+        <button class="close-btn" id="closeChatBtn"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="chatbot-messages" id="chatbotMessages">
+        <div class="date-divider"><span>Today</span></div>
+        <div class="msg-group bot">
+            <div class="message-bot">
+                <strong>Hi, I'm Yara Insights!</strong> Your YARABOT assistant.<br><br>
+                I can help you with:<br>
+                • Country data (population, GDP, area...)<br>
+                • Country comparisons<br>
+                • Rankings and analysis<br><br>
+                Select a country or ask me anything!
+            </div>
+            <span class="msg-time" id="welcome-time"></span>
+            <div class="suggestions">
+                <button class="suggestion-chip" onclick="sendSuggestion('Top 5 countries by GDP')">Top 5 GDP</button>
+                <button class="suggestion-chip" onclick="sendSuggestion('Compare Tunisia and Morocco')">Compare countries</button>
+                <button class="suggestion-chip" onclick="sendSuggestion('Show key indicators')">Key indicators</button>
+            </div>
+        </div>
+    </div>
+    <div class="chatbot-input-area">
+        <input type="text" id="chatbotInput" placeholder="Ask YARABOT anything...">
+        <button id="sendBtn"><i class="fas fa-paper-plane"></i></button>
+    </div>
+</div>
+
+<script>
+// ==================== CONFIG ====================
+const API_URL         = 'http://localhost:5001/api';
+const CHATBOT_API_URL = 'http://localhost:5002/api/chat';
+const token = localStorage.getItem('token');
+
+if (!token) window.location.href = 'login.html';
+
+let sessionId = localStorage.getItem('chat_session_id');
+if (!sessionId) {
+    sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('chat_session_id', sessionId);
+}
+
+// ==================== PROFILE LOGIC ====================
+function openProfileModal() {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+    const initials = ((user.prenom?.[0] || '') + (user.nom?.[0] || '')).toUpperCase() || '?';
+    document.getElementById('pm-avatar-icon').textContent = initials;
+    document.getElementById('pm-fullname').textContent = `${user.prenom || ''} ${user.nom || ''}`.trim() || '—';
+    document.getElementById('pm-role-badge').textContent = user.role?.toUpperCase() || '—';
+
+    document.getElementById('pm-email').textContent = user.email || '—';
+    document.getElementById('pm-phone').textContent = user.telephone || 'Not provided';
+    document.getElementById('pm-since').textContent = user.date_inscription
+        ? new Date(user.date_inscription).toLocaleDateString('en-GB', { year:'numeric', month:'short', day:'numeric' })
+        : '—';
+    document.getElementById('pm-status').innerHTML = user.statut === 'actif'
+        ? '<span style="color:#34D399;">● Active</span>'
+        : `<span style="color:#F87171;">● ${user.statut || '—'}</span>`;
+
+    document.getElementById('new-email').value = user.email || '';
+
+    clearMessages();
+    document.getElementById('confirm-pass-email').value = '';
+    document.getElementById('current-password').value = '';
+    document.getElementById('new-password').value = '';
+    document.getElementById('confirm-new-password').value = '';
+
+    document.getElementById('profile-overlay').classList.add('visible');
+}
+
+function closeProfileModal() {
+    document.getElementById('profile-overlay').classList.remove('visible');
+}
+
+function switchTab(tab) {
+    document.querySelectorAll('.pm-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.pm-tab-content').forEach(c => c.classList.remove('active'));
+    document.getElementById(`tab-${tab}`).classList.add('active');
+    event.currentTarget.classList.add('active');
+    clearMessages();
+}
+
+function clearMessages() {
+    ['msg-email', 'msg-password'].forEach(id => {
+        const el = document.getElementById(id);
+        el.className = 'pm-message';
+        el.textContent = '';
+    });
+}
+
+function showMsg(id, type, text) {
+    const el = document.getElementById(id);
+    el.className = `pm-message ${type} show`;
+    el.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'}"></i> ${text}`;
+}
+
+async function updateEmail() {
+    const newEmail = document.getElementById('new-email').value.trim();
+    const currentPass = document.getElementById('confirm-pass-email').value;
+
+    if (!newEmail) return showMsg('msg-email', 'error', 'Please enter a new email address');
+    if (!currentPass) return showMsg('msg-email', 'error', 'Please enter your current password');
+
+    const btn = document.getElementById('btn-update-email');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+
+    try {
+        const res = await fetch(`${API_URL}/auth/profile`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ new_email: newEmail, current_password: currentPass })
+        });
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            user.email = data.user.email;
+            localStorage.setItem('user', JSON.stringify(user));
+            document.getElementById('pm-email').textContent = data.user.email;
+            document.getElementById('confirm-pass-email').value = '';
+            showMsg('msg-email', 'success', 'Email updated successfully!');
+        } else {
+            showMsg('msg-email', 'error', data.message || 'Update failed');
+        }
+    } catch (err) {
+        showMsg('msg-email', 'error', 'Connection error: ' + err.message);
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-check"></i> Update Email';
+}
+
+async function updatePassword() {
+    const currentPass = document.getElementById('current-password').value;
+    const newPass = document.getElementById('new-password').value;
+    const confirmPass = document.getElementById('confirm-new-password').value;
+
+    if (!currentPass) return showMsg('msg-password', 'error', 'Please enter your current password');
+    if (!newPass) return showMsg('msg-password', 'error', 'Please enter a new password');
+    if (newPass.length < 6) return showMsg('msg-password', 'error', 'New password must be at least 6 characters');
+    if (newPass !== confirmPass) return showMsg('msg-password', 'error', 'Passwords do not match');
+
+    const btn = document.getElementById('btn-update-password');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+
+    try {
+        const res = await fetch(`${API_URL}/auth/profile`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ current_password: currentPass, new_password: newPass })
+        });
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+            document.getElementById('current-password').value = '';
+            document.getElementById('new-password').value = '';
+            document.getElementById('confirm-new-password').value = '';
+            showMsg('msg-password', 'success', 'Password updated successfully!');
+        } else {
+            showMsg('msg-password', 'error', data.message || 'Update failed');
+        }
+    } catch (err) {
+        showMsg('msg-password', 'error', 'Connection error: ' + err.message);
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-check"></i> Update Password';
+}
+
+function logout() {
+    localStorage.clear();
+    window.location.href = 'login.html';
+}
+
+document.getElementById('profile-btn').onclick = openProfileModal;
+document.getElementById('profile-overlay').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('profile-overlay')) closeProfileModal();
+});
+
+function fillNavUser() {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const initials = ((user.prenom?.[0] || '') + (user.nom?.[0] || '')).toUpperCase() || '?';
+    const name = user.prenom || user.email?.split('@')[0] || 'Profile';
+    document.getElementById('nav-avatar').textContent = initials;
+    document.getElementById('nav-username').textContent = name;
+}
+fillNavUser();
+
+// ==================== SIDEBAR NAV ====================
+const sidebarToggleBtn = document.getElementById('sidebar-toggle-btn');
+const dashSidebar = document.getElementById('dash-sidebar');
+const dashSidebarLinks = document.querySelectorAll('.dash-sidebar-link');
+
+function closeDashSidebar() {
+  dashSidebar.classList.remove('open');
+  dashSidebar.setAttribute('aria-hidden', 'true');
+}
+
+sidebarToggleBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  const open = dashSidebar.classList.toggle('open');
+  dashSidebar.setAttribute('aria-hidden', open ? 'false' : 'true');
+});
+
+dashSidebarLinks.forEach((btn) => {
+  btn.addEventListener('click', () => {
+    const target = btn.dataset.target;
+    if (target === 'dashboards') window.location.href = 'countries.html';
+    if (target === 'prediction') window.location.href = 'africa_ai_prediction_2026_2030.html';
+    closeDashSidebar();
+  });
+});
+
+document.addEventListener('click', (e) => {
+  if (!dashSidebar.contains(e.target) && !sidebarToggleBtn.contains(e.target)) closeDashSidebar();
+});
+
+document.getElementById('welcome-time').textContent =
+    new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+// ==================== COUNTRIES DATA ====================
+let allCountries = [];
+let currentCountry = null;
+let searchTimeout = null;
+const coordsCache = {};
+
+function escapeHtml(str) {
+    if (str === undefined || str === null || str === '') return '—';
+    return String(str);
+}
+
+function extractPlaceName(mapUrl, fallback) {
+    if (!mapUrl || mapUrl.trim() === '') return fallback;
+    const match = mapUrl.trim().match(/maps\/place\/([^/@?&#]+)/);
+    if (match) return decodeURIComponent(match[1].replace(/\+/g, ' '));
+    return fallback;
+}
+
+async function fetchCoords(placeName) {
+    if (coordsCache[placeName]) return coordsCache[placeName];
+    try {
+        const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(placeName)}&accept-language=en&format=json&limit=1&featuretype=country`;
+        const res = await fetch(url, { headers: { 'Accept-Language': 'en' } });
+        const data = await res.json();
+        if (data && data.length > 0) {
+            const coords = { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+            coordsCache[placeName] = coords;
+            return coords;
+        }
+    } catch (err) { console.warn('Nominatim error:', err.message); }
+    return null;
+}
+
+function buildOsmEmbed(lat, lng) {
+    const d = 12;
+    const bbox = `${lng-d},${lat-d},${lng+d},${lat+d}`;
+    return `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lng}&accept-language=en`;
+}
+
+function getTime() {
+    return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+function formatBotReply(text) {
+    if (!text) return '';
+    const lines = text.split('\n');
+    let html = '', inTable = false, tableRows = [], lastWasSpace = false;
+
+    function flushTable() {
+        if (!tableRows.length) return;
+        html = html.replace(/<div class="bot-spacer"><\/div>$/, '');
+        html += '<table><thead><tr>';
+        html += tableRows[0].map(h => `<th>${inlineBold(h)}</th>`).join('') + '</tr></thead><tbody>';
+        for (let i = 1; i < tableRows.length; i++) {
+            html += '<tr>' + tableRows[i].map(c => `<td>${inlineBold(c)}</td>`).join('') + '</tr>';
+        }
+        html += '</tbody></table>';
+        tableRows = []; inTable = false; lastWasSpace = false;
+    }
+
+    for (const raw of lines) {
+        const line = raw.trim();
+        if (line.startsWith('|') && line.endsWith('|')) {
+            if (/^\|[\s\-|:]+\|$/.test(line)) continue;
+            inTable = true;
+            tableRows.push(line.slice(1,-1).split('|').map(c=>c.trim()));
+            lastWasSpace = false; continue;
+        }
+        if (inTable) flushTable();
+        if (/^###\s+/.test(line)) { html += `<div class="bot-section-title">${inlineBold(line.replace(/^###\s+/,''))}</div>`; lastWasSpace=false; continue; }
+        if (/^\*\*(.+)\*\*$/.test(line)) { html += `<div class="bot-section-title">${line.replace(/^\*\*|\*\*$/g,'')}</div>`; lastWasSpace=false; continue; }
+        if (/^[•\-\*]\s+/.test(line)||/^\d+\.\s+/.test(line)) { html += `<div class="bot-bullet">• ${inlineBold(line.replace(/^[•\-\*]\s+/,'').replace(/^\d+\.\s+/,''))}</div>`; lastWasSpace=false; continue; }
+        if (line==='') { if (!lastWasSpace) { html += '<div class="bot-spacer"></div>'; lastWasSpace=true; } continue; }
+        html += `<div class="bot-line">${inlineBold(line)}</div>`; lastWasSpace=false;
+    }
+    if (inTable) flushTable();
+    return html.replace(/<div class="bot-spacer"><\/div>$/, '');
+}
+
+function inlineBold(text) { return text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>'); }
+
+function renderDashboardWithColumns(country, osmEmbedUrl) {
+    const countryName = country.country_name_english || country.country_name_french || '';
+    const flagUrl = (country.flag_url && country.flag_url.trim() !== '') ? country.flag_url.trim() : null;
+    const gmapsLink = (country.map_url && country.map_url.trim() !== '')
+        ? country.map_url.trim()
+        : `https://www.google.com/maps/search/${encodeURIComponent(countryName)}`;
+
+    const fields = [
+        { label:"Name (English)", value:country.country_name_english },
+        { label:"Name (French)", value:country.country_name_french },
+        { label:"Name (Arabic)", value:country.country_name_arabic },
+        { label:"IOC Code", value:country.ioc_code },
+        { label:"ISO Alpha-3 Code", value:country.iso_alpha3_code },
+        { label:"Continent", value:country.continent },
+        { label:"Population", value:country.population?country.population.toLocaleString():'—' },
+        { label:"Area (km²)", value:country.surface_area_km2?country.surface_area_km2.toLocaleString()+' km²':'—' },
+        { label:"GDP (USD)", value:country.gdp_current_us?country.gdp_current_us.toLocaleString()+' USD':'—' },
+        { label:"GDP per Capita (USD)", value:country.gdp_per_capita_current_us?country.gdp_per_capita_current_us.toLocaleString()+' USD':'—' },
+        { label:"Official Currency", value:country.official_currency },
+        { label:"Official Languages", value:country.official_languages },
+        { label:"Major Religion", value:country.religion },
+        { label:"Unemployment Rate", value:country.unemployment_rate?country.unemployment_rate+'%':'—' },
+        { label:"HDI", value:country.human_development_index },
+        { label:"Median Age", value:country.median_age?country.median_age+' years':'—' },
+        { label:"Urban Population (%)", value:country.urban_population_percent?country.urban_population_percent+'%':'—' }
+    ];
+
+    const identity=fields.slice(0,6), demography=fields.slice(6,9), economy=fields.slice(9,12), society=fields.slice(12,17);
+
+    const mkCard = (title, flds) => `
+    <div class="card">
+        <div class="card-header"><h3>${title}</h3></div>
+        ${flds.map(f=>`<div class="card-field"><div class="card-label">${f.label}</div><div class="card-value">${escapeHtml(f.value)}</div></div>`).join('')}
+    </div>`;
+
+    return `<div class="dashboard">
+        ${mkCard('NATIONAL IDENTITY', identity)}
+        ${mkCard('DEMOGRAPHY &amp; TERRITORY', demography)}
+        ${mkCard('ECONOMY &amp; FINANCE', economy)}
+        ${mkCard('SOCIETY &amp; DEVELOPMENT', society)}
+        <div class="card">
+            <div class="card-header"><h3>GEOGRAPHIC MAP</h3></div>
+            <div class="card-field"><div class="card-value">
+                <iframe id="map-iframe" src="${osmEmbedUrl}" frameborder="0" scrolling="no" allowfullscreen></iframe>
+                <a href="${gmapsLink}" target="_blank"><i class="fas fa-external-link-alt"></i> Open in Google Maps</a>
+            </div></div>
+        </div>
+        <div class="card">
+            <div class="card-header"><h3>NATIONAL FLAG</h3></div>
+            <div class="card-field"><div class="card-value">
+                ${flagUrl
+                    ? `<img src="${flagUrl}" alt="Flag of ${escapeHtml(countryName)}" onclick="window.open('${flagUrl}','_blank')" onerror="this.style.display='none';this.nextElementSibling.style.display='block';"><div style="display:none;padding:1rem;color:var(--text-3);font-size:0.8rem;"><i class="fas fa-exclamation-circle"></i> Invalid flag URL</div>`
+                    : `<div style="padding:1.5rem;color:var(--text-3);font-size:0.8rem;"><i class="fas fa-flag"></i> Not available</div>`}
+            </div></div>
+        </div>
+    </div>`;
+}
+
+async function showCountryDashboard(country) {
+    const container = document.getElementById('dashboard');
+    container.innerHTML = `<div class="dashboard"><div class="shimmer-card"></div><div class="shimmer-card"></div><div class="shimmer-card"></div></div>`;
+    const placeName = extractPlaceName(country.map_url, country.country_name_english||country.country_name_french||'');
+    const coords = await fetchCoords(placeName);
+    const osmEmbedUrl = coords
+        ? buildOsmEmbed(coords.lat, coords.lng)
+        : `https://www.openstreetmap.org/export/embed.html?bbox=-180,-90,180,90&layer=mapnik&q=${encodeURIComponent(placeName)}&accept-language=en`;
+    container.innerHTML = renderDashboardWithColumns(country, osmEmbedUrl);
+}
+
+function populateSelect(countriesToShow) {
+    const select = document.getElementById('country-select');
+    select.innerHTML = '<option value="">-- Select a country --</option>';
+    [...countriesToShow]
+        .sort((a,b)=>(a.country_name_english||a.country_name_french||'').localeCompare(b.country_name_english||b.country_name_french||''))
+        .forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.iso_alpha3_code;
+            opt.textContent = (c.country_name_english||c.country_name_french||c.iso_alpha3_code)+(c.ioc_code?` [${c.ioc_code}]`:'');
+            select.appendChild(opt);
+        });
+}
+
+function searchByCode(searchTerm) {
+    if (!searchTerm) { populateSelect(allCountries); return; }
+    const upper = searchTerm.toUpperCase().trim();
+    const exact = allCountries.find(c => c.ioc_code && c.ioc_code.toUpperCase() === upper);
+    if (exact) {
+        populateSelect([exact]);
+        setTimeout(() => {
+            const sel = document.getElementById('country-select');
+            sel.value = exact.iso_alpha3_code;
+            sel.dispatchEvent(new Event('change'));
+        }, 100);
+        return;
+    }
+    const filtered = allCountries.filter(c => {
+        const name = (c.country_name_english||c.country_name_french||'').toLowerCase();
+        return name.includes(searchTerm.toLowerCase())
+            || (c.ioc_code||'').toLowerCase().includes(searchTerm.toLowerCase())
+            || (c.iso_alpha3_code||'').toLowerCase().includes(searchTerm.toLowerCase());
+    });
+    populateSelect(filtered);
+}
+
+async function loadCountries() {
+    const statusDiv = document.getElementById('status');
+    statusDiv.innerHTML = '<div class="info"><i class="fas fa-circle-notch fa-spin"></i> Loading data...</div>';
+    try {
+        const res = await fetch(API_URL + '/countries', { headers: { 'Authorization': 'Bearer ' + token } });
+        if (!res.ok) { if (res.status === 401) throw new Error('Session expired'); throw new Error('Connection error'); }
+        const data = await res.json();
+        allCountries = data;
+        statusDiv.innerHTML = `<div class="success"><i class="fas fa-check-circle"></i> ${data.length} countries available</div>`;
+        populateSelect(allCountries);
+        document.getElementById('dashboard').innerHTML = `<div class="empty-state"><i class="fas fa-globe-americas"></i><p>Select a nation</p><small>17 key indicators to analyze each country</small></div>`;
+        setTimeout(() => { statusDiv.innerHTML = ''; }, 2500);
+    } catch (err) {
+        console.error(err);
+        statusDiv.innerHTML = '<div class="error"><i class="fas fa-exclamation-triangle"></i> Connection error</div>';
+    }
+}
+
+document.getElementById('search-input').addEventListener('input', (e) => {
+    if (searchTimeout) clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => { searchByCode(e.target.value); }, 300);
+});
+
+document.getElementById('country-select').onchange = (e) => {
+    const code = e.target.value;
+    if (!code) {
+        currentCountry = null;
+        document.getElementById('dashboard').innerHTML = `<div class="empty-state"><i class="fas fa-globe-americas"></i><p>Select a nation</p><small>17 key indicators to analyze each country</small></div>`;
+        return;
+    }
+    const country = allCountries.find(x => x.iso_alpha3_code === code);
+    if (!country) { document.getElementById('dashboard').innerHTML = `<div class="empty-state"><i class="fas fa-search"></i><p>Data not available</p></div>`; return; }
+    currentCountry = country;
+    showCountryDashboard(country);
+};
+
+loadCountries();
+
+// ==================== CHATBOT ====================
+const chatbotBtn = document.getElementById('chatbotBtn');
+const chatbotWindow = document.getElementById('chatbotWindow');
+const closeChatBtn = document.getElementById('closeChatBtn');
+const chatbotInput = document.getElementById('chatbotInput');
+const sendBtn = document.getElementById('sendBtn');
+const chatbotMessages = document.getElementById('chatbotMessages');
+let isChatOpen = false, isThinking = false;
+
+chatbotBtn.onclick = () => { isChatOpen = !isChatOpen; chatbotWindow.classList.toggle('show', isChatOpen); if (isChatOpen) chatbotInput.focus(); };
+closeChatBtn.onclick = () => { chatbotWindow.classList.remove('show'); isChatOpen = false; };
+
+function addMessage(text, type) {
+    const group = document.createElement('div');
+    group.className = `msg-group ${type}`;
+    const bubble = document.createElement('div');
+    bubble.className = type === 'user' ? 'message-user' : 'message-bot';
+    if (type === 'bot') bubble.innerHTML = formatBotReply(text); else bubble.textContent = text;
+    const time = document.createElement('span');
+    time.className = 'msg-time'; time.textContent = getTime();
+    group.appendChild(bubble); group.appendChild(time);
+    chatbotMessages.appendChild(group);
+    chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+}
+
+function showTyping() { const d=document.createElement('div'); d.className='typing-indicator'; d.id='typing-indicator'; d.innerHTML='<span></span><span></span><span></span>'; chatbotMessages.appendChild(d); chatbotMessages.scrollTop=chatbotMessages.scrollHeight; }
+function hideTyping() { const t=document.getElementById('typing-indicator'); if(t) t.remove(); }
+
+async function sendMessage() {
+    const message = chatbotInput.value.trim();
+    if (!message || isThinking) return;
+    addMessage(message, 'user'); chatbotInput.value = ''; isThinking = true; showTyping();
+    try {
+        const response = await fetch(CHATBOT_API_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({message, session_id:sessionId, country_data:currentCountry}) });
+        const data = await response.json();
+        hideTyping(); addMessage(data.reply || "Sorry, an error occurred.", 'bot');
+    } catch (error) { hideTyping(); addMessage("Connection error. Make sure the backend is running on port 5002.", 'bot'); }
+    isThinking = false;
+}
+
+function sendSuggestion(text) { chatbotInput.value = text; sendMessage(); }
+sendBtn.onclick = sendMessage;
+chatbotInput.onkeypress = (e) => { if (e.key === 'Enter') sendMessage(); };
+</script>
+</body>
+</html>

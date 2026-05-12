@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Yara Insights</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/register.style.css">
+</head>
+<body>
+    <div class="auth-card">
+        <!-- Back Button -->
+        <div class="auth-back">
+            <button class="back-btn" onclick="history.back()">
+                <i class="fas fa-arrow-left"></i>
+                <span>Back</span>
+            </button>
+        </div>
+
+        <div class="auth-header">
+            <div class="logo">
+                <i class="fas fa-chart-line"></i>
+                <span>Yara Insights</span>
+            </div>
+            <h2>Sign Up</h2>
+            <p>Create your account to access the dashboards</p>
+        </div>
+        <div id="message-container"></div>
+        <form id="register-form">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Last Name</label>
+                    <div class="input-icon">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="nom" placeholder="Your last name" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>First Name</label>
+                    <div class="input-icon">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="prenom" placeholder="Your first name" required>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <div class="input-icon">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="email" placeholder="example@email.com" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <div class="input-icon">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="password" placeholder="At least 6 characters" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Phone</label>
+                <div class="input-icon">
+                    <i class="fas fa-phone"></i>
+                    <input type="tel" id="telephone" placeholder="Optional">
+                </div>
+            </div>
+            <button type="submit" class="btn-auth">
+                <i class="fas fa-user-plus"></i>
+                Sign Up
+            </button>
+            <p class="auth-footer">
+                Already have an account? <a href="login.html">Sign in</a>
+            </p>
+        </form>
+    </div>
+    <script>
+        const API_URL = 'http://localhost:5001/api';
+        
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const msgDiv = document.getElementById('message-container');
+            msgDiv.innerHTML = '<div class="success-message"><i class="fas fa-spinner fa-pulse"></i> Creating account...</div>';
+            
+            const password = document.getElementById('password').value;
+            if (password.length < 6) {
+                msgDiv.innerHTML = '<div class="error-message"><i class="fas fa-exclamation-triangle"></i> Password must be at least 6 characters</div>';
+                return;
+            }
+            
+            const userData = {
+                nom: document.getElementById('nom').value.trim(),
+                prenom: document.getElementById('prenom').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                mot_de_passe: password,
+                telephone: document.getElementById('telephone').value.trim()
+            };
+            
+            try {
+                const res = await fetch(API_URL + '/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(userData)
+                });
+                const result = await res.json();
+                
+                if (res.ok && result.success) {
+                    msgDiv.innerHTML = '<div class="success-message"><i class="fas fa-check-circle"></i> Registration successful! Redirecting to login...</div>';
+                    setTimeout(function() {
+                        window.location.href = 'login.html';
+                    }, 2000);
+                } else {
+                    msgDiv.innerHTML = '<div class="error-message"><i class="fas fa-exclamation-triangle"></i> ' + (result.message || 'Registration error') + '</div>';
+                }
+            } catch (error) {
+                msgDiv.innerHTML = '<div class="error-message"><i class="fas fa-exclamation-triangle"></i> Server connection error: ' + error.message + '</div>';
+            }
+        });
+    </script>
+</body>
+</html>

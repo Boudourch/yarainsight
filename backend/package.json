@@ -1,0 +1,37 @@
+{
+  "name": "mon-projet-pfe-backend",
+  "version": "1.0.0",
+  "description": "Backend pour projet PFE - Maturité IA gouvernementale",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.90.0",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.6",
+    "dotenv": "^16.6.1",
+    "express": "^4.22.1",
+    "express-rate-limit": "^8.4.1",
+    "express-validator": "^7.0.1",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.3",
+    "mysql2": "^3.22.2",
+    "nodemailer": "^8.0.7",
+    "regression": "^2.0.1",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "keywords": [
+    "pfe",
+    "bi",
+    "powerbi",
+    "ia"
+  ],
+  "author": "Boudour & Ferdawes",
+  "license": "ISC",
+  "type": "commonjs"
+}

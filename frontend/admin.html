@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - User Management | Yara Insights</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/admin.style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="navbar">
+            <div class="logo">
+                <div class="logo-icon"><i class="fas fa-chart-line"></i></div>
+                <span class="logo-text">Yara Insights | Admin</span>
+            </div>
+            <button id="logout-btn" class="btn-logout">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+        
+        <div class="header-section">
+            <h1><i class="fas fa-users-cog"></i> User Management</h1>
+        </div>
+        
+        <!-- Stats Cards -->
+        <div class="stats-grid" id="stats-container">
+            <div class="stat-card"><i class="fas fa-users"></i><div class="number" id="total-users">-</div><div class="label">Total</div></div>
+            <div class="stat-card"><i class="fas fa-check-circle"></i><div class="number" id="actif-users">-</div><div class="label">Active</div></div>
+            <div class="stat-card"><i class="fas fa-clock"></i><div class="number" id="inactif-users">-</div><div class="label">Inactive</div></div>
+            <div class="stat-card"><i class="fas fa-ban"></i><div class="number" id="bloque-users">-</div><div class="label">Blocked</div></div>
+        </div>
+        
+        <!-- Actions Panel -->
+        <div class="actions-panel">
+            <button id="update-statuses-btn" class="btn-primary">
+                <i class="fas fa-sync-alt"></i> Update Statuses
+            </button>
+            <button id="add-user-btn" class="btn-primary btn-add">
+                <i class="fas fa-user-plus"></i> Add User
+            </button>
+        </div>
+        
+        <!-- Search Bar -->
+        <div class="search-bar">
+            <input type="text" id="search-input" placeholder="Search by name, email or role...">
+        </div>
+        
+        <!-- Users Table -->
+        <div class="table-wrapper">
+            <table id="users-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Full Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Role</th>
+                        <th>Registration Date</th>
+                        <th>Last Login</th>
+                        <th>Inactive Days</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="users-table-body">
+                    <tr><td colspan="10" class="loading"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Add User Modal -->
+    <div id="add-user-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeAddModal()">&times;</span>
+            <h2><i class="fas fa-user-plus"></i> Add User</h2>
+            <form id="add-user-form">
+                <input type="text" id="add-nom" placeholder="Last Name *" required>
+                <input type="text" id="add-prenom" placeholder="First Name *" required>
+                <input type="email" id="add-email" placeholder="Email *" required>
+                <input type="tel" id="add-telephone" placeholder="Phone">
+                <input type="password" id="add-motdepasse" placeholder="Password *" required>
+                <select id="add-role">
+                    <option value="user">Regular User</option>
+                    <option value="manager">Manager</option>
+                    <option value="admin">Administrator</option>
+                </select>
+                <div class="modal-buttons">
+                    <button type="button" class="btn-cancel" onclick="closeAddModal()">Cancel</button>
+                    <button type="submit" class="btn-save">Add</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        const API_URL = 'http://localhost:5001/api';
+        let allUsers = [];
+        let currentUserRole = null;
+        let currentUserId = null;
+        
+        // ========== ADMIN ACCESS VERIFICATION ==========
+        async function checkAccess() {
+            const token = localStorage.getItem('token');
+            
+            console.log('=== ADMIN DEBUG ===');
+            console.log('Token:', token ? 'Yes' : 'No token');
+            
+            if (!token) {
+                console.log('No token, redirecting to login');
+                window.location.href = 'login.html';
+                return false;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/users/verify`, {
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    console.log('Invalid token, redirecting to login');
+                    localStorage.clear();
+                    window.location.href = 'login.html';
+                    return false;
+                }
+                
+                const data = await response.json();
+                console.log('User verified:', data.user);
+                
+                localStorage.setItem('user', JSON.stringify(data.user));
+                currentUserRole = data.user.role;
+                currentUserId = data.user.id;
+                
+                if (data.user.role !== 'admin' && data.user.role !== 'manager') {
+                    console.log('Access denied, role:', data.user.role);
+                    alert('Access restricted to administrators and managers');
+                    window.location.href = 'countries.html';
+                    return false;
+                }
+                
+                console.log('Access granted for role:', data.user.role);
+                return true;
+                
+            } catch (error) {
+                console.error('Verification error:', error);
+                localStorage.clear();
+                window.location.href = 'login.html';
+                return false;
+            }
+        }
+        
+        // ========== FETCH USERS ==========
+        async function parseApiError(response, fallbackMessage) {
+            let payload = null;
+            try {
+                payload = await response.json();
+            } catch (_) {
+                payload = null;
+            }
+            const message = payload?.message || fallbackMessage;
+            const error = new Error(message);
+            error.status = response.status;
+            return error;
+        }
+
+        async function fetchUsers() {
+            const token = localStorage.getItem('token');
+            
+            try {
+                const response = await fetch(`${API_URL}/users`, {
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw await parseApiError(response, 'Unable to load users');
+                }
+                
+                const data = await response.json();
+                allUsers = data.users;
+                return data.users;
+            } catch (error) {
+                console.error('fetchUsers error:', error);
+                throw error;
+            }
+        }
+        
+        // ========== FETCH STATISTICS ==========
+        async function fetchStats() {
+            const token = localStorage.getItem('token');
+            
+            try {
+                const response = await fetch(`${API_URL}/users/stats`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!response.ok) {
+                    throw await parseApiError(response, 'Unable to load stats');
+                }
+                const data = await response.json();
+                return data.stats;
+            } catch (error) {
+                console.error('fetchStats error:', error);
+                return null;
+            }
+        }
+        
+        // ========== DISPLAY STATISTICS ==========
+        function displayStats(stats) {
+            if (stats) {
+                document.getElementById('total-users').textContent = stats.total || 0;
+                document.getElementById('actif-users').textContent = stats.actifs || 0;
+                document.getElementById('inactif-users').textContent = stats.inactifs || 0;
+                document.getElementById('bloque-users').textContent = stats.bloques || 0;
+            }
+        }
+        
+        // ========== DISPLAY USERS ==========
+        function displayUsers(users, searchTerm = '') {
+            const tbody = document.getElementById('users-table-body');
+            
+            let filteredUsers = users;
+            if (searchTerm) {
+                const term = searchTerm.toLowerCase();
+                filteredUsers = users.filter(user => 
+                    (user.nom?.toLowerCase() || '').includes(term) ||
+                    (user.prenom?.toLowerCase() || '').includes(term) ||
+                    (user.email?.toLowerCase() || '').includes(term) ||
+                    (user.role?.toLowerCase() || '').includes(term)
+                );
+            }
+            
+            if (filteredUsers.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="10" class="loading">No users found</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = filteredUsers.map(user => `
+                <tr class="${user.statut === 'bloque' ? 'bloque-row' : ''}">
+                    <td>${user.id}</td>
+                    <td><strong>${escapeHtml(user.prenom)} ${escapeHtml(user.nom)}</strong></td>
+                    <td>${escapeHtml(user.email)}</td>
+                    <td>${escapeHtml(user.telephone) || '—'}</td>
+                    <td>${getRoleLabel(user.role)}</td>
+                    <td>${user.date_inscription_formatee || '—'}</td>
+                    <td>${user.derniere_connexion_formatee || 'Never'}</td>
+                    <td>${user.jours_inactivite || 0} days</td>
+                    <td class="statut-${user.statut}">${getStatutBadge(user.statut)}</td>
+                    <td>
+                        ${canModifyUser(user) ? `
+                            ${user.statut !== 'bloque' ? 
+                                `<button class="btn-action-table btn-block" onclick="bloquerUser(${user.id})">
+                                    <i class="fas fa-lock"></i> Block
+                                </button>` :
+                                `<button class="btn-action-table btn-unblock" onclick="debloquerUser(${user.id})">
+                                    <i class="fas fa-lock-open"></i> Unblock
+                                </button>`
+                            }
+                            <button class="btn-action-table btn-delete" onclick="deleteUser(${user.id})">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        ` : '<span class="no-permission">—</span>'}
+                    </td>
+                </tr>
+            `).join('');
+        }
+        
+        function getRoleLabel(role) {
+            switch(role) {
+                case 'admin': return 'Administrator';
+                case 'manager': return 'Manager';
+                case 'user': return 'User';
+                default: return role || 'User';
+            }
+        }
+        
+        function canModifyUser(user) {
+            if (currentUserRole === 'admin') {
+                return true;
+            }
+            
+            if (currentUserRole === 'manager') {
+                if (user.role === 'admin') {
+                    return false;
+                }
+                if (user.id === currentUserId) {
+                    return false;
+                }
+                return true;
+            }
+            
+            return false;
+        }
+        
+        function getStatutBadge(statut) {
+            switch(statut) {
+                case 'actif': return '<span style="color: #4ade80;">ACTIVE</span>';
+                case 'inactif': return '<span style="color: #fbbf24;">INACTIVE</span>';
+                case 'bloque': return '<span style="color: #f87171;">BLOCKED</span>';
+                default: return '—';
+            }
+        }
+        
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+        
+        // ========== BLOCK USER ==========
+        async function bloquerUser(id) {
+            const userToBlock = allUsers.find(u => u.id === id);
+            if (userToBlock && userToBlock.role === 'admin' && currentUserRole === 'manager') {
+                alert('Managers cannot block administrators');
+                return;
+            }
+            if (id === currentUserId) {
+                alert('You cannot block yourself');
+                return;
+            }
+            if (!confirm('Block this user?')) return;
+            const token = localStorage.getItem('token');
+            
+            try {
+                const response = await fetch(`${API_URL}/users/bloquer/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    alert('User blocked');
+                    loadData();
+                } else {
+                    const error = await response.json();
+                    alert('Error: ' + error.message);
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+        
+        // ========== UNBLOCK USER ==========
+        async function debloquerUser(id) {
+            const userToUnblock = allUsers.find(u => u.id === id);
+            if (userToUnblock && userToUnblock.role === 'admin' && currentUserRole === 'manager') {
+                alert('Managers cannot unblock administrators');
+                return;
+            }
+            if (!confirm('Unblock this user?')) return;
+            const token = localStorage.getItem('token');
+            
+            try {
+                const response = await fetch(`${API_URL}/users/debloquer/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    alert('User unblocked');
+                    loadData();
+                } else {
+                    const error = await response.json();
+                    alert('Error: ' + error.message);
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+        
+        // ========== DELETE USER ==========
+        async function deleteUser(id) {
+            const userToDelete = allUsers.find(u => u.id === id);
+            if (userToDelete && userToDelete.role === 'admin' && currentUserRole === 'manager') {
+                alert('Managers cannot delete administrators');
+                return;
+            }
+            if (id === currentUserId) {
+                alert('You cannot delete yourself');
+                return;
+            }
+            if (!confirm('Are you sure you want to delete this user? This action is irreversible.')) return;
+            const token = localStorage.getItem('token');
+            
+            try {
+                const response = await fetch(`${API_URL}/users/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    alert('User deleted');
+                    loadData();
+                } else {
+                    const error = await response.json();
+                    alert('Error: ' + error.message);
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+        
+        // ========== ADD USER ==========
+        async function addUser(userData) {
+            const token = localStorage.getItem('token');
+            
+            if (currentUserRole === 'manager' && userData.role === 'admin') {
+                alert('Managers cannot create administrator accounts');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/users`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(userData)
+                });
+                
+                if (response.ok) {
+                    alert('User added successfully');
+                    closeAddModal();
+                    loadData();
+                } else {
+                    const error = await response.json();
+                    alert('Error: ' + error.message);
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+        
+        // ========== UPDATE ALL STATUSES ==========
+        async function updateAllStatuses() {
+            const token = localStorage.getItem('token');
+            
+            try {
+                const response = await fetch(`${API_URL}/users/update-statuses`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    alert('Statuses updated');
+                    loadData();
+                } else {
+                    alert('Error updating statuses');
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+        
+        // ========== LOAD ALL DATA ==========
+        async function loadData() {
+            const [usersResult, statsResult] = await Promise.allSettled([fetchUsers(), fetchStats()]);
+
+            if (usersResult.status === 'fulfilled') {
+                displayUsers(usersResult.value);
+            } else {
+                const error = usersResult.reason;
+                console.error('Loading error:', error);
+
+                if (error?.status === 401) {
+                    localStorage.clear();
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                if (error?.status === 403) {
+                    alert(error.message || 'Access denied');
+                    window.location.href = 'countries.html';
+                    return;
+                }
+
+                document.getElementById('users-table-body').innerHTML =
+                    `<tr><td colspan="10" class="error-message">${escapeHtml(error?.message || 'Error loading users')}</td></tr>`;
+            }
+
+            if (statsResult.status === 'fulfilled') {
+                displayStats(statsResult.value);
+            }
+        }
+        
+        // ========== MODAL ==========
+        function openAddModal() {
+            const roleSelect = document.getElementById('add-role');
+            if (currentUserRole === 'manager') {
+                const adminOption = roleSelect.querySelector('option[value="admin"]');
+                if (adminOption) {
+                    adminOption.disabled = true;
+                    adminOption.title = 'Managers cannot create administrator accounts';
+                }
+                if (roleSelect.value === 'admin') {
+                    roleSelect.value = 'user';
+                }
+            } else {
+                const adminOption = roleSelect.querySelector('option[value="admin"]');
+                if (adminOption) {
+                    adminOption.disabled = false;
+                }
+            }
+            document.getElementById('add-user-modal').style.display = 'flex';
+        }
+        
+        function closeAddModal() {
+            document.getElementById('add-user-modal').style.display = 'none';
+            document.getElementById('add-user-form').reset();
+            const roleSelect = document.getElementById('add-role');
+            const adminOption = roleSelect.querySelector('option[value="admin"]');
+            if (adminOption) {
+                adminOption.disabled = false;
+            }
+        }
+        
+        // ========== SEARCH ==========
+        let searchTimeout;
+        const searchInput = document.getElementById('search-input');
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    displayUsers(allUsers, e.target.value);
+                }, 300);
+            });
+        }
+        
+        // ========== INITIALIZATION ==========
+        (async function init() {
+            const hasAccess = await checkAccess();
+            if (hasAccess) {
+                await loadData();
+            }
+        })();
+        
+        // ========== EVENT LISTENERS ==========
+        const logoutBtn = document.getElementById('logout-btn');
+        if (logoutBtn) {
+            logoutBtn.onclick = () => {
+                localStorage.clear();
+                window.location.href = 'login.html';
+            };
+        }
+        
+        const updateBtn = document.getElementById('update-statuses-btn');
+        if (updateBtn) {
+            updateBtn.onclick = updateAllStatuses;
+        }
+        
+        const addBtn = document.getElementById('add-user-btn');
+        if (addBtn) {
+            addBtn.onclick = openAddModal;
+        }
+        
+        const addForm = document.getElementById('add-user-form');
+        if (addForm) {
+            addForm.onsubmit = (e) => {
+                e.preventDefault();
+                const userData = {
+                    nom: document.getElementById('add-nom').value,
+                    prenom: document.getElementById('add-prenom').value,
+                    email: document.getElementById('add-email').value,
+                    telephone: document.getElementById('add-telephone').value,
+                    mot_de_passe: document.getElementById('add-motdepasse').value,
+                    role: document.getElementById('add-role').value
+                };
+                addUser(userData);
+            };
+        }
+        
+        // Close modal when clicking outside
+        window.onclick = (e) => {
+            const modal = document.getElementById('add-user-modal');
+            if (modal && e.target === modal) closeAddModal();
+        };
+    </script>
+</body>
+</html>

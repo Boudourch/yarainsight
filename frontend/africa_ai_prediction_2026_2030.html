@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Africa AI Readiness — Predictions 2026–2030</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/prediction.style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+
+  <!-- NAVBAR — same style as countries.html -->
+  <div class="navbar">
+    <div class="logo">
+      <div class="logo-icon"><i class="fas fa-chart-line"></i></div>
+      <span class="logo-text">Yara Insights</span>
+    </div>
+
+    <div class="nav-actions">
+      <!-- Menu dropdown -->
+      <div class="nav-dropdown" id="nav-dropdown">
+        <button class="nav-menu-btn" onclick="toggleNavMenu()">
+          <i class="fas fa-bars"></i> Menu
+        </button>
+        <div class="nav-dropdown-menu" id="nav-dropdown-menu">
+          <a href="#overview"    onclick="closeNavMenu()">Africa Overview</a>
+          <a href="#top10-2025"  onclick="closeNavMenu()">Top 10 · 2025</a>
+          <a href="#predictions" onclick="closeNavMenu()">Predictions 2026–2030</a>
+          <a href="#top10-2030"  onclick="closeNavMenu()">Top 10 · 2030</a>
+          <a href="#risers"      onclick="closeNavMenu()">Risers & Decliners</a>
+          <a href="#tunisia"     onclick="closeNavMenu()">🇹🇳 Tunisia</a>
+        </div>
+      </div>
+
+      <!-- Back to dashboard — same style as profile btn -->
+      <a href="countries.html" class="btn-back-dashboard">
+        <div class="back-avatar"><i class="fas fa-arrow-left"></i></div>
+        <span>Dashboards</span>
+        <i class="fas fa-chevron-down" style="font-size:9px;opacity:0.5;"></i>
+      </a>
+    </div>
+  </div>
+
+  <!-- HERO -->
+  <header class="hero">
+    <h1>Africa AI Readiness<br>Predictions 2026–2030</h1>
+    <div class="hero-meta">
+      <div class="hero-meta-item">
+        <div class="val" id="meta-total">--</div>
+        <div class="lbl">African Countries</div>
+      </div>
+      <div class="hero-meta-item">
+        <div class="val">2019–2025</div>
+        <div class="lbl">Historical Data</div>
+      </div>
+      <div class="hero-meta-item">
+        <div class="val">2026–2030</div>
+        <div class="lbl">Prediction Horizon</div>
+      </div>
+      <div class="hero-meta-item">
+        <div class="val" id="meta-r2">--</div>
+        <div class="lbl">Average R²</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div id="status" class="status loading"></div>
+
+    <section id="overview">
+      <div class="section-header">
+        <h2>Africa AI Readiness <span>Overview</span></h2>
+      </div>
+      <div class="kpi-grid" id="overview-kpis"></div>
+      <div class="card chart-card">
+        <div class="chart-title">Africa Continental Average — Historical + Forecast</div>
+        <div class="chart-wrap"><canvas id="avgChart"></canvas></div>
+        <div class="insight"><strong>Interpretation:</strong><p id="insight-avg">—</p></div>
+      </div>
+      <div class="grid-2">
+        <div class="card chart-card">
+          <div class="chart-title">Score Distribution 2025</div>
+          <div class="chart-wrap"><canvas id="distChart"></canvas></div>
+          <div class="insight"><strong>Interpretation:</strong><p id="insight-dist">—</p></div>
+        </div>
+        <div class="card chart-card">
+          <div class="chart-title">Top 10: 2019 vs 2025</div>
+          <div class="chart-wrap"><canvas id="compareChart"></canvas></div>
+          <div class="insight"><strong>Interpretation:</strong><p id="insight-compare">—</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="top10-2025">
+      <div class="section-header">
+        <h2>Top 10 African Countries <span>in 2025</span></h2>
+      </div>
+      <div class="grid-2">
+        <div class="card chart-card">
+          <div class="chart-title">Top 10 2025 Scores</div>
+          <div class="chart-wrap"><canvas id="top10_2025Chart"></canvas></div>
+          <div class="insight"><strong>Interpretation:</strong><p id="insight-top10-2025">—</p></div>
+        </div>
+        <div class="card">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Rank</th><th>Country</th><th>Score</th></tr></thead>
+              <tbody id="top10-2025-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="predictions">
+      <div class="section-header">
+        <h2>Predictions <span>2026–2030</span></h2>
+      </div>
+      <div class="card chart-card">
+        <div class="chart-title">Top 10 Trajectory (2026–2030)</div>
+        <div class="chart-wrap"><canvas id="predTrajectoryChart"></canvas></div>
+        <div class="insight"><strong>Interpretation:</strong><p id="insight-trajectory">—</p></div>
+      </div>
+      <div class="grid-2">
+        <div class="card chart-card">
+          <div class="chart-title">Top 20 Predicted Scores (2030)</div>
+          <div class="chart-wrap"><canvas id="pred2030BarChart"></canvas></div>
+          <div class="insight"><strong>Interpretation:</strong><p id="insight-top20-2030">—</p></div>
+        </div>
+        <div class="card chart-card">
+          <div class="chart-title">Forecast Band (Min / Avg / Max)</div>
+          <div class="chart-wrap"><canvas id="forecastBandChart"></canvas></div>
+          <div class="insight"><strong>Interpretation:</strong><p id="insight-forecast-band">—</p></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="chart-title">All Countries — Full Prediction Table</div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Country</th><th>2025</th><th>2026</th><th>2027</th><th>2028</th><th>2029</th><th>2030</th><th>Δ</th><th>Trend</th></tr>
+            </thead>
+            <tbody id="full-pred-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="top10-2030">
+      <div class="section-header">
+        <h2>Predicted Top 10 <span>in 2030</span></h2>
+      </div>
+      <div class="grid-2">
+        <div class="card chart-card">
+          <div class="chart-title">Top 10 2030 (with 2025 baseline)</div>
+          <div class="chart-wrap"><canvas id="top10_2030Chart"></canvas></div>
+          <div class="insight"><strong>Interpretation:</strong><p id="insight-top10-2030">—</p></div>
+        </div>
+        <div class="card">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Rank</th><th>Country</th><th>2030</th><th>2025</th><th>Δ</th></tr></thead>
+              <tbody id="top10-2030-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="card chart-card">
+        <div class="chart-title">Rank Change 2025 → 2030</div>
+        <div class="chart-wrap"><canvas id="rankChangeChart"></canvas></div>
+        <div class="insight"><strong>Interpretation:</strong><p id="insight-rank-change">—</p></div>
+      </div>
+    </section>
+
+    <section id="risers">
+      <div class="section-header">
+        <h2>Fastest Risers & <span>Biggest Decliners</span></h2>
+      </div>
+      <div class="grid-2">
+        <div class="card chart-card">
+          <div class="chart-title green">Top 8 Risers</div>
+          <div class="chart-wrap"><canvas id="risersChart"></canvas></div>
+          <div class="insight insight-green"><strong>Interpretation:</strong><p id="insight-risers">—</p></div>
+        </div>
+        <div class="card chart-card">
+          <div class="chart-title red">Top 8 Decliners</div>
+          <div class="chart-wrap"><canvas id="declinersChart"></canvas></div>
+          <div class="insight insight-red"><strong>Interpretation:</strong><p id="insight-decliners">—</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tunisia">
+      <div class="section-header">
+        <h2>Tunisia <span>Focus</span></h2>
+      </div>
+      <div class="kpi-grid" id="tunisia-kpis"></div>
+      <div class="card chart-card">
+        <div class="chart-title">Tunisia — Historical + Forecast</div>
+        <div class="chart-wrap"><canvas id="tunisiaMainChart"></canvas></div>
+        <div class="insight"><strong>Interpretation:</strong><p id="insight-tunisia-main">—</p></div>
+      </div>
+      <div class="grid-2">
+        <div class="card chart-card">
+          <div class="chart-title">Tunisia vs Africa Average</div>
+          <div class="chart-wrap"><canvas id="tunisiaVsAfricaChart"></canvas></div>
+          <div class="insight"><strong>Interpretation:</strong><p id="insight-tunisia-vs-africa">—</p></div>
+        </div>
+        <div class="card chart-card">
+          <div class="chart-title">Tunisia vs Top 5 (Radar)</div>
+          <div class="chart-wrap"><canvas id="tunisiaVsTop5Chart"></canvas></div>
+          <div class="insight"><strong>Interpretation:</strong><p id="insight-tunisia-radar">—</p></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="chart-title">Tunisia Year-by-Year</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Year</th><th>Score</th><th>Type</th><th>vs Africa Avg</th></tr></thead>
+            <tbody id="tunisia-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="insight insight-red"><strong>Challenge:</strong><p id="tunisia-i1">—</p></div>
+        <div class="insight insight-green"><strong>Opportunity:</strong><p id="tunisia-i2">—</p></div>
+        <div class="insight insight-blue"><strong>Strategic Position:</strong><p id="tunisia-i3">—</p></div>
+        <div class="insight"><strong>Model Confidence:</strong><p id="tunisia-i4">—</p></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Backend-driven AI Readiness report — Ridge Polynomial Regression (degree 2, α=0.1)</p>
+  </footer>
+
+  <script>
+    function toggleNavMenu() {
+      const menu = document.getElementById('nav-dropdown-menu');
+      menu.classList.toggle('open');
+    }
+    function closeNavMenu() {
+      document.getElementById('nav-dropdown-menu').classList.remove('open');
+    }
+    // Close on outside click
+    document.addEventListener('click', function(e) {
+      const dd = document.getElementById('nav-dropdown');
+      if (dd && !dd.contains(e.target)) closeNavMenu();
+    });
+  </script>
+  <script src="js/africa_ai_predictions_2026_2030.js"></script>
+</body>
+</html>

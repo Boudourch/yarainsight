@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Yara Insights</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/login.style.css">
+</head>
+<body>
+    <div class="auth-card"> 
+        <!-- Back Button Header -->
+        <div class="auth-back">
+            <button class="back-btn" onclick="history.back()">
+                <i class="fas fa-arrow-left"></i>
+                <span>Back</span>
+            </button>
+        </div>
+
+        <div class="auth-header">
+            <div class="logo">
+                <i class="fas fa-chart-line"></i>
+                <span>Yara Insights</span>
+            </div>
+            <h2>Login</h2>
+            <p>Sign in to access the dashboards</p>
+        </div>
+        <div id="message-container"></div>
+        <form id="login-form">
+            <div class="form-group">
+                <label>Email</label>
+                <div class="input-icon">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="email" placeholder="example@email.com" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <div class="input-icon">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="password" placeholder="Your password" required>
+                </div>
+            </div>
+            <button type="submit" class="btn-auth">
+                <i class="fas fa-sign-in-alt"></i>
+                Sign in
+            </button>
+            <p class="auth-footer">
+                Don't have an account? <a href="register.html">Sign up</a>
+            </p>
+        </form>
+    </div>
+
+    <!-- Manager Choice Overlay -->
+    <div id="manager-choice" class="manager-overlay">
+        <div class="manager-modal">
+            <div class="manager-modal__logo">
+                <i class="fas fa-chart-line"></i>
+                <span>Yara Insights</span>
+            </div>
+            <p class="manager-modal__subtitle">Welcome back, Manager! Where do you want to go?</p>
+            <div class="manager-modal__grid">
+                <button class="manager-card manager-card--admin" onclick="window.location.replace('admin.html')">
+                    <i class="fas fa-cog"></i>
+                    <p class="manager-card__title">Admin Panel</p>
+                    <p class="manager-card__desc">Manage users &amp; settings</p>
+                </button>
+                <button class="manager-card manager-card--countries" onclick="window.location.replace('countries.html')">
+                    <i class="fas fa-globe"></i>
+                    <p class="manager-card__title">Countries</p>
+                    <p class="manager-card__desc">View dashboards &amp; data</p>
+                </button>
+            </div>
+        </div>
+    </div>
+    <script>
+        const API_URL = 'http://localhost:5001/api';
+
+        function showManagerChoice() {
+            document.querySelector('.auth-card').style.display = 'none';
+            document.getElementById('manager-choice').classList.add('visible');
+        }
+
+        // Check if already logged in
+        const token = localStorage.getItem('token');
+        if (token) {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            if (user.role === 'admin') {
+                window.location.href = 'admin.html';
+            } else if (user.role === 'manager') {
+                showManagerChoice();
+            } else {
+                window.location.href = 'countries.html';
+            }
+        }
+
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const msgDiv = document.getElementById('message-container');
+            msgDiv.innerHTML = '<div class="success-message"><i class="fas fa-spinner fa-pulse"></i> Logging in...</div>';
+
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+
+            if (!email || !password) {
+                msgDiv.innerHTML = '<div class="error-message"><i class="fas fa-exclamation-triangle"></i> Please fill in all fields</div>';
+                return;
+            }
+
+            try {
+                const res = await fetch(API_URL + '/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email, mot_de_passe: password })
+                });
+
+                const result = await res.json();
+
+                if (res.ok && result.success) {
+                    localStorage.setItem('token', result.token);
+                    localStorage.setItem('user', JSON.stringify(result.user));
+
+                    if (result.user.role === 'admin') {
+                        window.location.replace('admin.html');
+                    } else if (result.user.role === 'manager') {
+                        showManagerChoice();
+                    } else {
+                        window.location.replace('countries.html');
+                    }
+                } else {
+                    msgDiv.innerHTML = '<div class="warning-message"><i class="fas fa-exclamation-triangle"></i> ' + (result.message || 'Invalid email or password') + '<br>Please sign up first</div>';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                msgDiv.innerHTML = '<div class="error-message"><i class="fas fa-exclamation-triangle"></i> Server connection error: ' + error.message + '<br>Make sure the backend is running on ' + API_URL + '</div>';
+            }
+        });
+    </script>
+</body>
+</html>
