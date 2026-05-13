@@ -5,6 +5,7 @@ const jwt     = require('jsonwebtoken');
 const crypto  = require('crypto');
 const bcrypt  = require('bcryptjs');
 const transporter = require('../config/mailer');
+const authController = require('../controllers/authController');
 
 const JWT_SECRET   = 'mon_secret_jwt_pfe_2026';
 const FRONTEND_URL = 'http://localhost:5001';
@@ -438,5 +439,11 @@ router.post('/logout', async (req, res) => {
         res.status(500).json({ success: false, message: 'Erreur serveur' });
     }
 });
+
+// ══════════════════════════════════════════════
+//  MOT DE PASSE OUBLIÉ (NOUVELLES ROUTES)
+// ══════════════════════════════════════════════
+router.post('/forgot-password', authController.forgotPassword);
+router.post('/reset-password', authController.resetPassword);
 
 module.exports = router;

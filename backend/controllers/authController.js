@@ -1,6 +1,8 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
+const crypto = require('crypto');
+const emailService = require('../config/emailService');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'mon_secret_jwt_pfe_2026';
 
@@ -211,4 +213,100 @@ exports.refreshToken = async (req, res) => {
         console.error('Erreur refreshToken:', error);
         res.status(500).json({ success: false, message: 'Erreur serveur' });
     }
+};
+
+// ============================================
+// MOT DE PASSE OUBLIÉ
+// ============================================
+exports.forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+        
+        if (!email) {
+            return res.status(400).json({ success: false, message: "L'email est requis" });
+        }
+        
+        // Vérifier si l'utilisateur existe (en utilisant le modèle User)
+        const user = await User.findByEmail(email);
+        
+        if (!user) {
+            return res.status(404).json({ success: false, message: "Aucun compte trouvé avec cet email" });
+        }
+        
+        // Générer un code à 6 chiffres
+        const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+        
+        // Date d'expiration (1 heure)
+        const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+        
+        // Stocker le code dans la base (ajouter les colonnes reset_token et reset_expires dans la table users)
+        await User.saveResetToken(user.id, resetCode, expiresAt);
+        
+        // Envoyer l'email
+        const subject = "Réinitialisation de votre mot de passe - Yara Insights";
+        const message = `
+            <h2>Réinitialisation du mot de passe</h2>
+            <p>Vous avez demandé à réinitialiser votre mot de passe.</p>
+            <p>Voici votre code de validation : <strong style="font-size:24px;">${resetCode}</strong></p>
+            <p>Ce code est valable pendant 1 heure.</p>
+            <p>Si vous n'êtes pas à l'origine de cette demande, ignorez cet email.</p>
+        `;
+        
+        await emailService.sendNotificationEmail(email, subject, message);
+        
+        res.status(200).json({ 
+            success: true,
+            message: "Un code de réinitialisation a été envoyé à votre adresse email" 
+        });
+        
+    } catch (error) {
+        console.error("Erreur forgotPassword:", error);
+        res.status(500).json({ success: false, message: "Erreur interne du serveur" });
+    }
+};
+
+// ============================================
+// RÉINITIALISATION MOT DE PASSE
+// ============================================
+exports.resetPassword = async (req, res) => {
+    try {
+        const { email, code, newPassword } = req.body;
+        
+        if (!email || !code || !newPassword) {
+            return res.status(400).json({ success: false, message: "Tous les champs sont requis" });
+        }
+        
+        if (newPassword.length < 6) {
+            return res.status(400).json({ success: false, message: "Le mot de passe doit contenir au moins 6 caractères" });
+        }
+        
+        // Vérifier le code (en utilisant le modèle User)
+        const user = await User.findByResetToken(email, code);
+        
+        if (!user) {
+            return res.status(400).json({ success: false, message: "Code invalide ou expiré" });
+        }
+        
+        // Mettre à jour le mot de passe et supprimer le token
+        await User.updatePasswordAndClearResetToken(user.id, newPassword);
+        
+        // Envoyer une confirmation par email
+        const subject = "Votre mot de passe a été réinitialisé - Yara Insights";
+        const message = `
+            <h2>Réinitialisation réussie</h2>
+            <p>Votre mot de passe a été réinitialisé avec succès.</p>
+            <p>Si vous n'avez pas effectué cette opération, contactez-nous immédiatement.</p>
+        `;
+        await emailService.sendNotificationEmail(email, subject, message);
+        
+        res.status(200).json({ 
+            success: true,
+            message: "Mot de passe réinitialisé avec succès" 
+        });
+        
+    } catch (error) {
+        console.error("Erreur resetPassword:", error);
+        res.status(500).json({ success: false, message: "Erreur interne du serveur" });
+    }
+    
 };

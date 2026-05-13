@@ -23,4 +23,26 @@ async function sendConfirmationEmail(email, prenom, token) {
   });
 }
 
-module.exports = { sendConfirmationEmail };
+// ============================================
+// NOUVELLE FONCTION POUR MOT DE PASSE OUBLIÉ
+// ============================================
+
+/**
+ * Envoie un email de notification (pour réinitialisation, modifications, etc.)
+ * @param {string} to - Email du destinataire
+ * @param {string} subject - Sujet de l'email
+ * @param {string} htmlContent - Contenu HTML de l'email
+ */
+async function sendNotificationEmail(to, subject, htmlContent) {
+  await transporter.sendMail({
+    from: '"Yara Insights" <' + process.env.EMAIL_USER + '>',
+    to: to,
+    subject: subject,
+    html: htmlContent
+  });
+}
+
+module.exports = { 
+  sendConfirmationEmail,
+  sendNotificationEmail   // <--- NOUVEAU : exporté
+};

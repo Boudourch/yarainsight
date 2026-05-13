@@ -2,6 +2,16 @@ const User = require('../models/User');
 const crypto = require('crypto');
 const transporter = require('../config/mailer');
 
+// Email wrapper template
+function emailWrapper(content) {
+    return `
+    <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;padding:30px;border:1px solid #e0e0e0;border-radius:10px;background:#fff;">
+        ${content}
+        <hr style="border:none;border-top:1px solid #eee;margin:24px 0;">
+        <p style="color:#aaa;font-size:12px;text-align:center;">© 2026 Yara Insights — All rights reserved</p>
+    </div>`;
+}
+
 // ========== VERIFIER UTILISATEUR CONNECTE ==========
 exports.verifyUser = async (req, res) => {
     try {
@@ -158,82 +168,97 @@ exports.getUserStats = async (req, res) => {
 // ========== AJOUTER UN UTILISATEUR (ADMIN/MANAGER) ==========
 exports.addUser = async (req, res) => {
     try {
-        const { nom, prenom, email, mot_de_passe, telephone, role } = req.body;
+        const { nom, prenom, email, telephone, role } = req.body;
+        const creatorRole = req.user.role; // 'admin' or 'manager'
         
-        console.log('Tentative ajout user:', email);
+        console.log(`Attempting to add user: ${email} by ${creatorRole}`);
         
-        // Champs obligatoires
-        if (!nom || !prenom || !email || !mot_de_passe) {
+        // Check required fields
+        if (!nom || !prenom || !email) {
             return res.status(400).json({ 
                 success: false, 
-                message: 'Nom, prenom, email et mot de passe sont requis' 
+                message: 'First name, last name and email are required' 
             });
         }
         
-        // Email déjà utilisé ?
+        // Manager can only create 'user' role
+        if (creatorRole === 'manager' && role && role !== 'user') {
+            return res.status(403).json({ 
+                success: false, 
+                message: 'Manager can only create regular users' 
+            });
+        }
+        
+        // Check if email already exists
         const existingUser = await User.findByEmail(email);
         if (existingUser) {
             return res.status(400).json({ 
                 success: false, 
-                message: 'Cet email existe deja' 
+                message: 'This email is already used' 
             });
         }
         
-        // Génère token de vérification
+        // Generate temporary password (8 characters)
+        const tempPassword = Math.random().toString(36).slice(-8);
+        
+        // Generate verification token
         const verification_token = crypto.randomBytes(32).toString('hex');
-        const verification_expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h
-
-        // Crée user avec statut inactif + token
+        const verification_expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+        
+        // Create user with temporary password and verification token
         const userId = await User.createWithToken({ 
             nom, 
             prenom, 
             email, 
-            mot_de_passe, 
+            mot_de_passe: tempPassword,
             telephone: telephone || null,
             role: role || 'user',
             verification_token,
             verification_expires
         });
-
-        // Envoie email de confirmation
+        
+        // Send confirmation email with temporary password
         const confirmLink = `http://localhost:5001/api/auth/verify-email/${verification_token}`;
-
+        
         await transporter.sendMail({
             from: `"Yara Insights" <${process.env.EMAIL_USER}>`,
             to: email,
-            subject: "Confirmez votre compte Yara Insights",
-            html: `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 30px; border: 1px solid #e0e0e0; border-radius: 10px;">
-                    <h2 style="color: #E8B84B;">Bienvenue sur Yara Insights, ${prenom} ! 👋</h2>
-                    <p style="color: #444;">Un compte a été créé pour vous. Cliquez ci-dessous pour confirmer votre email et activer votre compte :</p>
-                    <div style="text-align: center; margin: 30px 0;">
-                        <a href="${confirmLink}" 
-                           style="background-color: #E8B84B; color: #000; padding: 14px 28px; 
-                                  border-radius: 8px; text-decoration: none; font-size: 16px; 
-                                  display: inline-block; font-weight: bold;">
-                            ✅ Confirmer mon compte
-                        </a>
-                    </div>
-                    <p style="color: #888; font-size: 13px;">Ce lien expire dans <strong>24 heures</strong>.</p>
-                    <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-                    <p style="color: #aaa; font-size: 12px; text-align: center;">© 2026 Yara Insights — Tous droits réservés</p>
+            subject: 'Your Yara Insights account has been created',
+            html: emailWrapper(`
+                <h2 style="color:#E8B84B;">Welcome to Yara Insights, ${prenom}! </h2>
+                <p>An account has been created for you by <strong>${creatorRole === 'admin' ? 'an administrator' : 'a manager'}</strong>.</p>
+                
+                <div style="background:#f5f5f5;padding:15px;border-radius:8px;margin:20px 0;">
+                    <p style="margin:5px 0;"><strong> Email:</strong> ${email}</p>
+                    <p style="margin:5px 0;"><strong> Temporary password:</strong> <span style="background:#E8B84B;padding:3px 8px;border-radius:5px;font-weight:bold;">${tempPassword}</span></p>
+                    <p style="margin:5px 0;"><strong> Role:</strong> ${role || 'user'}</p>
                 </div>
-            `
+                
+                <p>Click below to confirm your email and activate your account:</p>
+                <div style="text-align:center;margin:30px 0;">
+                    <a href="${confirmLink}" 
+                       style="background:#E8B84B;color:#000;padding:14px 28px;border-radius:8px;text-decoration:none;font-size:16px;display:inline-block;font-weight:bold;">
+                         Confirm my account
+                    </a>
+                </div>
+                <p style="color:#888;font-size:13px;">This link expires in <strong>24 hours</strong>.</p>
+                <p style="color:#888;font-size:13px;">After confirmation, you can log in and change your password.</p>
+            `)
         });
         
-        console.log('Utilisateur ajoute et email envoye:', email);
+        console.log(`User created: ${email} by ${creatorRole}, confirmation email sent`);
         
         res.json({ 
             success: true, 
-            message: 'Utilisateur créé, email de confirmation envoyé',
+            message: `User created successfully. A confirmation email has been sent to ${email}.`,
             userId: userId 
         });
         
     } catch (error) {
-        console.error('Erreur addUser:', error);
+        console.error('Error addUser:', error);
         res.status(500).json({ 
             success: false, 
-            message: 'Erreur serveur: ' + error.message 
+            message: 'Server error: ' + error.message 
         });
     }
 };

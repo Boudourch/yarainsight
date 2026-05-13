@@ -15,7 +15,7 @@ router.get('/stats', userController.getUserStats);
 router.put('/bloquer/:id', userController.bloquerUser);
 router.put('/debloquer/:id', userController.debloquerUser);
 router.post('/update-statuses', userController.updateAllStatuses);
-router.post('/', userController.addUser);
+router.post('/', userController.addUser);        // ✅ Route pour ajouter un utilisateur (existe déjà)
 router.delete('/:id', userController.deleteUser);
 
 module.exports = router;

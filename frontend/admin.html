@@ -81,7 +81,6 @@
                 <input type="text" id="add-prenom" placeholder="First Name *" required>
                 <input type="email" id="add-email" placeholder="Email *" required>
                 <input type="tel" id="add-telephone" placeholder="Phone">
-                <input type="password" id="add-motdepasse" placeholder="Password *" required>
                 <select id="add-role">
                     <option value="user">Regular User</option>
                     <option value="manager">Manager</option>
@@ -410,7 +409,7 @@
             }
         }
         
-        // ========== ADD USER ==========
+        // ========== ADD USER (with email confirmation) ==========
         async function addUser(userData) {
             const token = localStorage.getItem('token');
             
@@ -426,16 +425,23 @@
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(userData)
+                    body: JSON.stringify({
+                        nom: userData.nom,
+                        prenom: userData.prenom,
+                        email: userData.email,
+                        telephone: userData.telephone,
+                        role: userData.role
+                    })
                 });
                 
+                const data = await response.json();
+                
                 if (response.ok) {
-                    alert('User added successfully');
+                    alert('User added successfully. A confirmation email has been sent to ' + userData.email);
                     closeAddModal();
                     loadData();
                 } else {
-                    const error = await response.json();
-                    alert('Error: ' + error.message);
+                    alert('Error: ' + (data.message || 'Unable to create user'));
                 }
             } catch (error) {
                 alert('Error: ' + error.message);
@@ -573,7 +579,6 @@
                     prenom: document.getElementById('add-prenom').value,
                     email: document.getElementById('add-email').value,
                     telephone: document.getElementById('add-telephone').value,
-                    mot_de_passe: document.getElementById('add-motdepasse').value,
                     role: document.getElementById('add-role').value
                 };
                 addUser(userData);
