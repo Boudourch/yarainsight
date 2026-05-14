@@ -8,124 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="stylesheet" href="css/countries.style.css">
-<style>
-/* ── Power BI section ── */
-.powerbi-section {
-    display: none;
-    width: 100%;
-    padding: 0 0 32px 0;
-    animation: fadeInUp 0.4s ease;
-}
-.powerbi-section.active {
-    display: block;
-}
-.powerbi-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 20px;
-    padding: 20px 0 0 0;
-}
-.powerbi-header i {
-    font-size: 22px;
-    color: #E8B84B;
-}
-.powerbi-header h2 {
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--text-1, #f1f5f9);
-    margin: 0;
-}
-.powerbi-header p {
-    font-size: 13px;
-    color: var(--text-3, #94a3b8);
-    margin: 2px 0 0 0;
-}
-.powerbi-wrapper {
-    width: 100%;
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 0 8px 40px rgba(0,0,0,0.3);
-    border: 1px solid rgba(255,255,255,0.08);
-    background: #1a1a2e;
-    position: relative;
-}
-.powerbi-wrapper iframe {
-    width: 100%;
-    height: 85vh;
-    min-height: 500px;
-    border: none;
-    display: block;
-}
-.powerbi-loading {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background: #1a1a2e;
-    color: #94a3b8;
-    font-size: 14px;
-    gap: 12px;
-    pointer-events: none;
-    transition: opacity 0.5s ease;
-}
-.powerbi-loading i {
-    font-size: 32px;
-    color: #E8B84B;
-    animation: spin 1.2s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-@keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(12px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
-
-/* ── Active nav tab ── */
-.dash-sidebar-link.active-link {
-    background: rgba(232, 184, 75, 0.12);
-    color: #E8B84B !important;
-    border-left: 3px solid #E8B84B;
-}
-
-/* ── View toggle tabs ── */
-.view-tabs {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 20px;
-    padding-top: 16px;
-}
-.view-tab {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    padding: 8px 18px;
-    border-radius: 30px;
-    border: 1px solid rgba(255,255,255,0.1);
-    background: transparent;
-    color: #94a3b8;
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-family: 'Plus Jakarta Sans', sans-serif;
-}
-.view-tab:hover {
-    background: rgba(255,255,255,0.06);
-    color: #e2e8f0;
-}
-.view-tab.active {
-    background: rgba(232, 184, 75, 0.15);
-    border-color: #E8B84B;
-    color: #E8B84B;
-}
-.view-tab i { font-size: 13px; }
-
-/* Countries section */
-.countries-section { display: block; }
-.countries-section.hidden { display: none; }
-</style>
+<link rel="stylesheet" href="css/powerbi.style.css">
 </head>
 <body>
 <div class="container">
@@ -196,7 +79,6 @@
 
     <!-- COUNTRIES VIEW -->
     <div class="countries-section" id="countries-view">
-        <!-- SEARCH & SELECT -->
         <div class="select-wrapper">
             <input type="text" id="search-input" class="search-input"
                    placeholder="Search by name or IOC code (e.g., TUN, FRA, USA)...">
@@ -225,14 +107,10 @@
                 <i class="fas fa-circle-notch"></i>
                 <span>Loading dashboard...</span>
             </div>
-            <iframe
-                title="Mon PFE (2)"
-                src="https://app.powerbi.com/view?r=eyJrIjoiMzNiNzYzMmMtNTE2Mi00MjgyLTgzNGItMmQ3ODlmYjRhYjg3IiwidCI6ImRiZDY2NjRkLTRlYjktNDZlYi05OWQ4LTVjNDNiYTE1M2M2MSIsImMiOjl9"
-                frameborder="0"
-                allowFullScreen="true"
-                id="pbi-iframe"
-                onload="hidePbiLoading()">
-            </iframe>
+            <iframe id="pbi-iframe" title="Mon PFE" width="100%" height="500" 
+                    src="" frameborder="0" allowFullScreen="true"
+                    loading="lazy"
+                    onload="hidePbiLoading()"></iframe>
         </div>
     </div>
 
@@ -399,6 +277,7 @@
 // ==================== CONFIG ====================
 const API_URL         = 'http://localhost:5001/api';
 const CHATBOT_API_URL = 'http://localhost:5002/api/chat';
+const POWERBI_URL     = 'https://app.powerbi.com/view?r=eyJrIjoiOWIyOWU4YjQtODk3Yy00NWU1LWJjNjctZjZkMjUzNWU1MWI0IiwidCI6ImRiZDY2NjRkLTRlYjktNDZlYi05OWQ4LTVjNDNiYTE1M2M2MSIsImMiOjl9';
 const token = localStorage.getItem('token');
 
 if (!token) window.location.href = 'login.html';
@@ -410,22 +289,29 @@ if (!sessionId) {
 }
 
 // ==================== VIEW TOGGLE ====================
+let pbiLoaded = false;
+
 function showView(view) {
     const countriesView = document.getElementById('countries-view');
-    const powerbiBiew   = document.getElementById('powerbi-view');
+    const powerbiView   = document.getElementById('powerbi-view');
     const tabCountries  = document.getElementById('tab-countries-btn');
     const tabPowerbi    = document.getElementById('tab-powerbi-btn');
 
     if (view === 'countries') {
         countriesView.classList.remove('hidden');
-        powerbiBiew.classList.remove('active');
+        powerbiView.classList.remove('active');
         tabCountries.classList.add('active');
         tabPowerbi.classList.remove('active');
     } else {
         countriesView.classList.add('hidden');
-        powerbiBiew.classList.add('active');
+        powerbiView.classList.add('active');
         tabCountries.classList.remove('active');
         tabPowerbi.classList.add('active');
+
+        if (!pbiLoaded) {
+            document.getElementById('pbi-iframe').src = POWERBI_URL;
+            pbiLoaded = true;
+        }
     }
 }
 
@@ -436,6 +322,14 @@ function hidePbiLoading() {
         setTimeout(() => loader.style.display = 'none', 500);
     }
 }
+
+setTimeout(function() {
+    const loader = document.getElementById('pbi-loading');
+    if (loader && loader.style.display !== 'none') {
+        loader.style.opacity = '0';
+        setTimeout(() => loader.style.display = 'none', 500);
+    }
+}, 15000);
 
 // ==================== PROFILE LOGIC ====================
 function openProfileModal() {
@@ -592,27 +486,27 @@ const dashSidebar = document.getElementById('dash-sidebar');
 const dashSidebarLinks = document.querySelectorAll('.dash-sidebar-link');
 
 function closeDashSidebar() {
-  dashSidebar.classList.remove('open');
-  dashSidebar.setAttribute('aria-hidden', 'true');
+    dashSidebar.classList.remove('open');
+    dashSidebar.setAttribute('aria-hidden', 'true');
 }
 
 sidebarToggleBtn.addEventListener('click', (e) => {
-  e.stopPropagation();
-  const open = dashSidebar.classList.toggle('open');
-  dashSidebar.setAttribute('aria-hidden', open ? 'false' : 'true');
+    e.stopPropagation();
+    const open = dashSidebar.classList.toggle('open');
+    dashSidebar.setAttribute('aria-hidden', open ? 'false' : 'true');
 });
 
 dashSidebarLinks.forEach((btn) => {
-  btn.addEventListener('click', () => {
-    const target = btn.dataset.target;
-    if (target === 'dashboards') window.location.href = 'countries.html';
-    if (target === 'prediction') window.location.href = 'africa_ai_prediction_2026_2030.html';
-    closeDashSidebar();
-  });
+    btn.addEventListener('click', () => {
+        const target = btn.dataset.target;
+        if (target === 'dashboards') window.location.href = 'countries.html';
+        if (target === 'prediction') window.location.href = 'africa_ai_prediction_2026_2030.html';
+        closeDashSidebar();
+    });
 });
 
 document.addEventListener('click', (e) => {
-  if (!dashSidebar.contains(e.target) && !sidebarToggleBtn.contains(e.target)) closeDashSidebar();
+    if (!dashSidebar.contains(e.target) && !sidebarToggleBtn.contains(e.target)) closeDashSidebar();
 });
 
 document.getElementById('welcome-time').textContent =
@@ -622,7 +516,14 @@ document.getElementById('welcome-time').textContent =
 let allCountries = [];
 let currentCountry = null;
 let searchTimeout = null;
-const coordsCache = {};
+
+const coordsCache = JSON.parse(localStorage.getItem('coordsCache') || '{}');
+
+function saveCoordsCacheToDisk() {
+    try {
+        localStorage.setItem('coordsCache', JSON.stringify(coordsCache));
+    } catch (e) {}
+}
 
 function escapeHtml(str) {
     if (str === undefined || str === null || str === '') return '—';
@@ -645,6 +546,7 @@ async function fetchCoords(placeName) {
         if (data && data.length > 0) {
             const coords = { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
             coordsCache[placeName] = coords;
+            saveCoordsCacheToDisk();
             return coords;
         }
     } catch (err) { console.warn('Nominatim error:', err.message); }
@@ -670,7 +572,7 @@ function formatBotReply(text) {
         if (!tableRows.length) return;
         html = html.replace(/<div class="bot-spacer"><\/div>$/, '');
         html += '<table><thead><tr>';
-        html += tableRows[0].map(h => `<th>${inlineBold(h)}</th>`).join('') + '</tr></thead><tbody>';
+        html += tableRows[0].map(h => `<th>${inlineBold(h)}</th>`).join('') + '</table></thead><tbody>';
         for (let i = 1; i < tableRows.length; i++) {
             html += '<tr>' + tableRows[i].map(c => `<td>${inlineBold(c)}</td>`).join('') + '</tr>';
         }
@@ -734,6 +636,14 @@ function renderDashboardWithColumns(country, osmEmbedUrl) {
         ${flds.map(f=>`<div class="card-field"><div class="card-label">${f.label}</div><div class="card-value">${escapeHtml(f.value)}</div></div>`).join('')}
     </div>`;
 
+    const mapContent = osmEmbedUrl
+        ? `<iframe id="map-iframe" src="${osmEmbedUrl}" frameborder="0" scrolling="no" allowfullscreen loading="lazy"></iframe>`
+        : `<div class="map-placeholder" id="map-placeholder">
+               <i class="fas fa-circle-notch"></i>
+               <span>Loading map...</span>
+           </div>
+           <iframe id="map-iframe" src="" frameborder="0" scrolling="no" allowfullscreen loading="lazy" style="display:none;"></iframe>`;
+
     return `<div class="dashboard">
         ${mkCard('NATIONAL IDENTITY', identity)}
         ${mkCard('DEMOGRAPHY &amp; TERRITORY', demography)}
@@ -742,7 +652,7 @@ function renderDashboardWithColumns(country, osmEmbedUrl) {
         <div class="card">
             <div class="card-header"><h3>GEOGRAPHIC MAP</h3></div>
             <div class="card-field"><div class="card-value">
-                <iframe id="map-iframe" src="${osmEmbedUrl}" frameborder="0" scrolling="no" allowfullscreen></iframe>
+                ${mapContent}
                 <a href="${gmapsLink}" target="_blank"><i class="fas fa-external-link-alt"></i> Open in Google Maps</a>
             </div></div>
         </div>
@@ -759,13 +669,33 @@ function renderDashboardWithColumns(country, osmEmbedUrl) {
 
 async function showCountryDashboard(country) {
     const container = document.getElementById('dashboard');
-    container.innerHTML = `<div class="dashboard"><div class="shimmer-card"></div><div class="shimmer-card"></div><div class="shimmer-card"></div></div>`;
-    const placeName = extractPlaceName(country.map_url, country.country_name_english||country.country_name_french||'');
-    const coords = await fetchCoords(placeName);
-    const osmEmbedUrl = coords
-        ? buildOsmEmbed(coords.lat, coords.lng)
-        : `https://www.openstreetmap.org/export/embed.html?bbox=-180,-90,180,90&layer=mapnik&q=${encodeURIComponent(placeName)}&accept-language=en`;
-    container.innerHTML = renderDashboardWithColumns(country, osmEmbedUrl);
+    const placeName = extractPlaceName(country.map_url, country.country_name_english || country.country_name_french || '');
+
+    const cachedCoords = coordsCache[placeName];
+
+    if (cachedCoords) {
+        const osmUrl = buildOsmEmbed(cachedCoords.lat, cachedCoords.lng);
+        container.innerHTML = renderDashboardWithColumns(country, osmUrl);
+    } else {
+        container.innerHTML = renderDashboardWithColumns(country, '');
+        const coords = await fetchCoords(placeName);
+        if (coords) {
+            const iframe = document.getElementById('map-iframe');
+            const placeholder = document.getElementById('map-placeholder');
+            if (iframe) {
+                iframe.src = buildOsmEmbed(coords.lat, coords.lng);
+                iframe.style.display = 'block';
+            }
+            if (placeholder) {
+                placeholder.style.display = 'none';
+            }
+        } else {
+            const placeholder = document.getElementById('map-placeholder');
+            if (placeholder) {
+                placeholder.innerHTML = '<i class="fas fa-map-marker-alt" style="animation:none;"></i> <span>Map unavailable</span>';
+            }
+        }
+    }
 }
 
 function populateSelect(countriesToShow) {

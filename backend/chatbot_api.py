@@ -28,13 +28,13 @@ if not GROQ_API_KEY:
 client = Groq(api_key=GROQ_API_KEY)
 
 # =====================================================================
-# CONFIGURATION MYSQL (depuis .env)
+# CONFIGURATION MYSQL (depuis .env) - MODIFICATION ICI
 # =====================================================================
 DB_CONFIG = {
-    'host':     os.getenv("DB_HOST",     "localhost"),
-    'database': os.getenv("DB_NAME",     "mon_projet_pfe"),
-    'user':     os.getenv("DB_USER",     "root"),
-    'password': os.getenv("DB_PASSWORD", ""),
+    'host':     '127.0.0.1',
+    'database': 'mon_projet_pfe',
+    'user':     'root',
+    'password': 'yara*INSIGHTS*2026',  # ← مكتوب مباشرة
     'charset':  'utf8mb4'
 }
 
@@ -49,7 +49,7 @@ def get_db_connection():
         return connection
     except Error as e:
         print(f"Erreur de connexion a MySQL: {e}")
-        print("Verifiez que XAMPP est demarre (MySQL) et que la base existe")
+        print("Verifiez que MySQL est demarre et que la base existe")
         return None
 
 def load_countries_from_db():
@@ -138,7 +138,7 @@ conversations = {}
 def generer_reponse_ia(question, historique, session_id):
 
     if df_pays is None:
-        return "Desole, la base de donnees n'est pas disponible. Verifiez que XAMPP est demarre et que la table 'liste_pays' existe."
+        return "Desole, la base de donnees n'est pas disponible. Verifiez que MySQL est demarre et que la table 'liste_pays' existe."
 
     system_prompt = f"""
 You are an expert assistant in geography, economics and world politics, integrated into Yara Insights.
@@ -194,7 +194,8 @@ ABSOLUTE RULES:
 </tr></thead>
 <tbody><tr style="border-bottom:1px solid rgba(255,204,0,0.1);">
 <td style="padding:10px; color:#ffffff;">Value</td>
-</tr></tbody></table>
+</tr></tbody>
+</table>
 
 9. Country profile: 2-column table (Indicator | Value).
 10. Comparison: one column per country.
