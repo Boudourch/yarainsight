@@ -197,6 +197,48 @@ body::before {
 }
 
 .btn-profile:hover .chevron { transform: translateY(1px); }
+/* ══════════════════════════════════════════════════════════
+   ADMIN PANEL BUTTON (navbar)
+══════════════════════════════════════════════════════════ */
+.btn-admin-panel {
+    background: transparent;
+    border: 1px solid rgba(232, 184, 75, 0.22);
+    border-radius: 40px;
+    padding: 8px 18px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #E8B84B;
+    transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+
+.btn-admin-panel:hover {
+    background: rgba(232, 184, 75, 0.12);
+    border-color: rgba(232, 184, 75, 0.55);
+    box-shadow: 0 0 16px rgba(232, 184, 75, 0.15);
+    transform: translateY(-1px);
+}
+
+.btn-admin-panel:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+.btn-admin-panel i {
+    font-size: 0.85rem;
+    opacity: 0.85;
+    transition: opacity 0.15s ease;
+}
+
+.btn-admin-panel:hover i {
+    opacity: 1;
+}
 
 /* ══════════════════════════════════════════════════════════
    SIDEBAR MENU (à droite de Mon Profil)
@@ -285,6 +327,13 @@ body::before {
 /* ══════════════════════════════════════════════════════════
    PROFILE OVERLAY & MODAL
 ══════════════════════════════════════════════════════════ */
+.status-active  { color: #34D399; }
+.status-inactive { color: #F87171; }
+.powerbi-header-title { display:flex; align-items:center; gap:10px; }
+.powerbi-header-title h2 { font-size:20px; font-weight:700; margin:0; }
+.powerbi-header-sub { font-size:13px; color:#94a3b8; margin:4px 0 0 0; }
+.flag-error { display:none; padding:1rem; font-size:0.8rem; }
+.flag-unavailable { padding:1.5rem; font-size:0.8rem; }
 .profile-overlay {
     display: none;
     position: fixed;

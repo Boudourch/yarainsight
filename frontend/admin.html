@@ -15,16 +15,20 @@
                 <div class="logo-icon"><i class="fas fa-chart-line"></i></div>
                 <span class="logo-text">Yara Insights | Admin</span>
             </div>
-            <button id="logout-btn" class="btn-logout">
-                <i class="fas fa-sign-out-alt"></i> Logout
-            </button>
+            <div style="display:flex;align-items:center;gap:10px;">
+                <button id="goto-countries-btn" class="btn-logout" style="background:transparent;border:1px solid rgba(255,255,255,0.25);display:none;" onclick="window.location.href='countries.html'">
+                    <i class="fas fa-globe"></i> Dashboards
+                </button>
+                <button id="logout-btn" class="btn-logout">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
         </div>
         
         <div class="header-section">
             <h1><i class="fas fa-users-cog"></i> User Management</h1>
         </div>
         
-        <!-- Stats Cards -->
         <div class="stats-grid" id="stats-container">
             <div class="stat-card"><i class="fas fa-users"></i><div class="number" id="total-users">-</div><div class="label">Total</div></div>
             <div class="stat-card"><i class="fas fa-check-circle"></i><div class="number" id="actif-users">-</div><div class="label">Active</div></div>
@@ -32,7 +36,6 @@
             <div class="stat-card"><i class="fas fa-ban"></i><div class="number" id="bloque-users">-</div><div class="label">Blocked</div></div>
         </div>
         
-        <!-- Actions Panel -->
         <div class="actions-panel">
             <button id="update-statuses-btn" class="btn-primary">
                 <i class="fas fa-sync-alt"></i> Update Statuses
@@ -42,12 +45,10 @@
             </button>
         </div>
         
-        <!-- Search Bar -->
         <div class="search-bar">
             <input type="text" id="search-input" placeholder="Search by name, email or role...">
         </div>
         
-        <!-- Users Table -->
         <div class="table-wrapper">
             <table id="users-table">
                 <thead>
@@ -71,7 +72,6 @@
         </div>
     </div>
     
-    <!-- Add User Modal -->
     <div id="add-user-modal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="closeAddModal()">&times;</span>
@@ -104,11 +104,7 @@
         async function checkAccess() {
             const token = localStorage.getItem('token');
             
-            console.log('=== ADMIN DEBUG ===');
-            console.log('Token:', token ? 'Yes' : 'No token');
-            
             if (!token) {
-                console.log('No token, redirecting to login');
                 window.location.href = 'login.html';
                 return false;
             }
@@ -122,27 +118,44 @@
                 });
                 
                 if (!response.ok) {
-                    console.log('Invalid token, redirecting to login');
                     localStorage.clear();
                     window.location.href = 'login.html';
                     return false;
                 }
                 
                 const data = await response.json();
-                console.log('User verified:', data.user);
-                
                 localStorage.setItem('user', JSON.stringify(data.user));
                 currentUserRole = data.user.role;
                 currentUserId = data.user.id;
                 
                 if (data.user.role !== 'admin' && data.user.role !== 'manager') {
-                    console.log('Access denied, role:', data.user.role);
                     alert('Access restricted to administrators and managers');
                     window.location.href = 'countries.html';
                     return false;
                 }
+
+                // ========== SHOW/HIDE DASHBOARDS BUTTON BASED ON ROLE ==========
+                const dashboardsBtn = document.getElementById('goto-countries-btn');
+                if (dashboardsBtn) {
+                    if (data.user.role === 'manager') {
+                        dashboardsBtn.style.display = 'flex';
+                        console.log('Dashboards button displayed for manager');
+                    } else {
+                        dashboardsBtn.style.display = 'none';
+                        console.log('Dashboards button hidden for admin');
+                    }
+                }
+
+                if (data.user.role === 'manager') {
+                    const wantsToContinue = confirm(
+                        'You have manager access to this page.\n\nClick OK to continue, or Cancel to go back to Dashboards.'
+                    );
+                    if (!wantsToContinue) {
+                        window.location.href = 'countries.html';
+                        return false;
+                    }
+                }
                 
-                console.log('Access granted for role:', data.user.role);
                 return true;
                 
             } catch (error) {
@@ -281,20 +294,12 @@
         }
         
         function canModifyUser(user) {
-            if (currentUserRole === 'admin') {
-                return true;
-            }
-            
+            if (currentUserRole === 'admin') return true;
             if (currentUserRole === 'manager') {
-                if (user.role === 'admin') {
-                    return false;
-                }
-                if (user.id === currentUserId) {
-                    return false;
-                }
+                if (user.role === 'admin') return false;
+                if (user.id === currentUserId) return false;
                 return true;
             }
-            
             return false;
         }
         
@@ -336,7 +341,6 @@
                     method: 'PUT',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                
                 if (response.ok) {
                     alert('User blocked');
                     loadData();
@@ -364,7 +368,6 @@
                     method: 'PUT',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                
                 if (response.ok) {
                     alert('User unblocked');
                     loadData();
@@ -396,7 +399,6 @@
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                
                 if (response.ok) {
                     alert('User deleted');
                     loadData();
@@ -409,7 +411,7 @@
             }
         }
         
-        // ========== ADD USER (with email confirmation) ==========
+        // ========== ADD USER ==========
         async function addUser(userData) {
             const token = localStorage.getItem('token');
             
@@ -457,7 +459,6 @@
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                
                 if (response.ok) {
                     alert('Statuses updated');
                     loadData();
@@ -509,14 +510,10 @@
                     adminOption.disabled = true;
                     adminOption.title = 'Managers cannot create administrator accounts';
                 }
-                if (roleSelect.value === 'admin') {
-                    roleSelect.value = 'user';
-                }
+                if (roleSelect.value === 'admin') roleSelect.value = 'user';
             } else {
                 const adminOption = roleSelect.querySelector('option[value="admin"]');
-                if (adminOption) {
-                    adminOption.disabled = false;
-                }
+                if (adminOption) adminOption.disabled = false;
             }
             document.getElementById('add-user-modal').style.display = 'flex';
         }
@@ -526,9 +523,7 @@
             document.getElementById('add-user-form').reset();
             const roleSelect = document.getElementById('add-role');
             const adminOption = roleSelect.querySelector('option[value="admin"]');
-            if (adminOption) {
-                adminOption.disabled = false;
-            }
+            if (adminOption) adminOption.disabled = false;
         }
         
         // ========== SEARCH ==========
@@ -561,14 +556,10 @@
         }
         
         const updateBtn = document.getElementById('update-statuses-btn');
-        if (updateBtn) {
-            updateBtn.onclick = updateAllStatuses;
-        }
+        if (updateBtn) updateBtn.onclick = updateAllStatuses;
         
         const addBtn = document.getElementById('add-user-btn');
-        if (addBtn) {
-            addBtn.onclick = openAddModal;
-        }
+        if (addBtn) addBtn.onclick = openAddModal;
         
         const addForm = document.getElementById('add-user-form');
         if (addForm) {
@@ -585,7 +576,6 @@
             };
         }
         
-        // Close modal when clicking outside
         window.onclick = (e) => {
             const modal = document.getElementById('add-user-modal');
             if (modal && e.target === modal) closeAddModal();

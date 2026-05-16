@@ -161,6 +161,43 @@ body::before {
     color: #ffffff;
     transform: translateY(-2px);
 }
+/* ══════════════════════════════════════════════════════════
+   DASHBOARDS BUTTON (navbar)
+══════════════════════════════════════════════════════════ */
+#goto-countries-btn {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 40px;
+    padding: 8px 18px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #9BA3BC;
+    transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    text-decoration: none;
+}
+
+#goto-countries-btn:hover {
+    background: rgba(232,184,75,0.12);
+    border-color: rgba(232,184,75,0.45);
+    color: #E8B84B;
+    transform: translateX(-3px);
+}
+
+#goto-countries-btn i {
+    font-size: 0.85rem;
+    color: #E8B84B;
+    opacity: 0.7;
+    transition: opacity 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#goto-countries-btn:hover i {
+    opacity: 1;
+}
 
 /* ============================================================
    HEADER SECTION

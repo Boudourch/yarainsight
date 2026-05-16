@@ -13,7 +13,6 @@
 <body>
 <div class="container">
 
-    <!-- NAVBAR -->
     <div class="navbar">
         <div class="logo">
             <div class="logo-icon"><i class="fas fa-chart-line"></i></div>
@@ -32,12 +31,10 @@
                         <i class="fas fa-layer-group"></i>
                         <span>Navigation</span>
                     </div>
-
                     <button type="button" class="dash-sidebar-link" data-target="dashboards">
                         <i class="fas fa-chart-line"></i>
                         <span>Dashboards</span>
                     </button>
-
                     <button type="button" class="dash-sidebar-link" data-target="prediction">
                         <i class="fas fa-brain"></i>
                         <span>Prediction</span>
@@ -45,16 +42,19 @@
                 </div>
             </div>
 
-            <!-- MON PROFIL button -->
             <button id="profile-btn" class="btn-profile">
                 <div class="avatar-circle" id="nav-avatar">?</div>
                 <span id="nav-username">Mon Profil</span>
-                <i class="fas fa-chevron-down" style="font-size:10px;opacity:0.6;"></i>
+                <i class="fas fa-chevron-down"></i>
+            </button>
+
+            <button id="admin-panel-btn" class="btn-admin-panel" onclick="window.location.href='admin.html'" style="display: none;">
+                <i class="fas fa-users-cog"></i>
+                <span>Admin Panel</span>
             </button>
         </div>
     </div>
 
-    <!-- HEADER -->
     <div class="header-section">
         <h1>Sovereign Nations Dashboard</h1>
         <div class="header-stats">
@@ -67,7 +67,6 @@
 
     <div id="status"></div>
 
-    <!-- VIEW TOGGLE TABS -->
     <div class="view-tabs">
         <button class="view-tab active" id="tab-countries-btn" onclick="showView('countries')">
             <i class="fas fa-globe"></i> Country Explorer
@@ -77,7 +76,6 @@
         </button>
     </div>
 
-    <!-- COUNTRIES VIEW -->
     <div class="countries-section" id="countries-view">
         <div class="select-wrapper">
             <input type="text" id="search-input" class="search-input"
@@ -89,16 +87,15 @@
         <div id="dashboard"></div>
     </div>
 
-    <!-- POWER BI VIEW -->
     <div class="powerbi-section" id="powerbi-view">
         <div class="powerbi-header">
             <div>
-                <div style="display:flex;align-items:center;gap:10px;">
-                    <i class="fas fa-chart-bar" style="font-size:22px;color:#E8B84B;"></i>
-                    <h2 style="font-size:20px;font-weight:700;margin:0;">Power BI Analytics</h2>
+                <div class="powerbi-header-title">
+                    <i class="fas fa-chart-bar"></i>
+                    <h2>Power BI Analytics</h2>
                 </div>
-                <p style="font-size:13px;color:#94a3b8;margin:4px 0 0 0;">
-                    Interactive dashboard — explore your data visually
+                <p class="powerbi-header-sub">
+                    Interactive dashboard explore your data visually
                 </p>
             </div>
         </div>
@@ -107,14 +104,13 @@
                 <i class="fas fa-circle-notch"></i>
                 <span>Loading dashboard...</span>
             </div>
-            <iframe id="pbi-iframe" title="Mon PFE" width="100%" height="500" 
+            <iframe id="pbi-iframe" title="Mon PFE" width="100%" height="500"
                     src="" frameborder="0" allowFullScreen="true"
                     loading="lazy"
                     onload="hidePbiLoading()"></iframe>
         </div>
     </div>
 
-    <!-- FOOTER -->
     <div class="footer-note">
         <span><i class="fas fa-chart-line"></i> Live Data</span>
         <span><i class="fas fa-globe"></i> 17 Key Indicators</span>
@@ -131,8 +127,8 @@
                     <i class="fas fa-user"></i>
                 </div>
                 <div>
-                    <div class="pm-name" id="pm-fullname">—</div>
-                    <div class="pm-role" id="pm-role-badge">—</div>
+                    <div class="pm-name" id="pm-fullname">-</div>
+                    <div class="pm-role" id="pm-role-badge">-</div>
                 </div>
             </div>
             <button class="pm-close" onclick="closeProfileModal()">
@@ -143,28 +139,28 @@
         <div class="pm-info">
             <div class="pm-info-item">
                 <div class="pm-info-label">Email</div>
-                <div class="pm-info-value highlight" id="pm-email">—</div>
+                <div class="pm-info-value highlight" id="pm-email">-</div>
             </div>
             <div class="pm-info-item">
                 <div class="pm-info-label">Phone</div>
-                <div class="pm-info-value" id="pm-phone">—</div>
+                <div class="pm-info-value" id="pm-phone">-</div>
             </div>
             <div class="pm-info-item">
                 <div class="pm-info-label">Member since</div>
-                <div class="pm-info-value" id="pm-since">—</div>
+                <div class="pm-info-value" id="pm-since">-</div>
             </div>
             <div class="pm-info-item">
                 <div class="pm-info-label">Account status</div>
-                <div class="pm-info-value" id="pm-status">—</div>
+                <div class="pm-info-value" id="pm-status">-</div>
             </div>
         </div>
 
         <div class="pm-tabs">
             <div class="pm-tab active" onclick="switchTab('email')">
-                <i class="fas fa-envelope" style="margin-right:6px;font-size:11px;"></i>Change Email
+                <i class="fas fa-envelope"></i>Change Email
             </div>
             <div class="pm-tab" onclick="switchTab('password')">
-                <i class="fas fa-lock" style="margin-right:6px;font-size:11px;"></i>Change Password
+                <i class="fas fa-lock"></i>Change Password
             </div>
         </div>
 
@@ -242,7 +238,7 @@
                 <div class="chatbot-title">Yara Bot</div>
                 <div class="chatbot-status">
                     <span class="online-dot"></span>
-                    YARABOT · Always here
+                    YARABOT Always here
                 </div>
             </div>
         </div>
@@ -252,12 +248,12 @@
         <div class="date-divider"><span>Today</span></div>
         <div class="msg-group bot">
             <div class="message-bot">
-                <strong>Hi, I'm Yara Insights!</strong> Your YARABOT assistant.<br><br>
+                <strong>Hi, I'm Yara Insights</strong> Your YARABOT assistant.<br><br>
                 I can help you with:<br>
-                • Country data (population, GDP, area...)<br>
-                • Country comparisons<br>
-                • Rankings and analysis<br><br>
-                Select a country or ask me anything!
+                Country data (population, GDP, area...)<br>
+                Country comparisons<br>
+                Rankings and analysis<br><br>
+                Select a country or ask me anything
             </div>
             <span class="msg-time" id="welcome-time"></span>
             <div class="suggestions">
@@ -287,6 +283,53 @@ if (!sessionId) {
     sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     localStorage.setItem('chat_session_id', sessionId);
 }
+
+// ==================== ADMIN BUTTON VISIBILITY (CORRECTED) ====================
+async function checkAndShowAdminBtn() {
+    const adminBtn = document.getElementById('admin-panel-btn');
+    
+    // Hide by default
+    if (adminBtn) adminBtn.style.display = 'none';
+    
+    try {
+        const response = await fetch(`${API_URL}/users/verify`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) return;
+        
+        const data = await response.json();
+        const role = data.user?.role?.toLowerCase();
+        
+        console.log('Detected role:', role);
+        
+        // Show ONLY if role is 'manager'
+        if (role === 'manager') {
+            if (adminBtn) {
+                adminBtn.style.display = 'flex';
+                console.log('Admin button displayed for manager');
+            }
+        } else {
+            if (adminBtn) {
+                adminBtn.style.display = 'none';
+                console.log('Admin button hidden for role:', role);
+            }
+        }
+        
+        localStorage.setItem('user', JSON.stringify(data.user));
+        fillNavUser();
+        
+    } catch (err) {
+        console.warn('Could not verify user role:', err.message);
+        if (adminBtn) adminBtn.style.display = 'none';
+    }
+}
+
+// Call immediately
+checkAndShowAdminBtn();
 
 // ==================== VIEW TOGGLE ====================
 let pbiLoaded = false;
@@ -337,20 +380,18 @@ function openProfileModal() {
 
     const initials = ((user.prenom?.[0] || '') + (user.nom?.[0] || '')).toUpperCase() || '?';
     document.getElementById('pm-avatar-icon').textContent = initials;
-    document.getElementById('pm-fullname').textContent = `${user.prenom || ''} ${user.nom || ''}`.trim() || '—';
-    document.getElementById('pm-role-badge').textContent = user.role?.toUpperCase() || '—';
-
-    document.getElementById('pm-email').textContent = user.email || '—';
+    document.getElementById('pm-fullname').textContent = `${user.prenom || ''} ${user.nom || ''}`.trim() || '-';
+    document.getElementById('pm-role-badge').textContent = user.role?.toUpperCase() || '-';
+    document.getElementById('pm-email').textContent = user.email || '-';
     document.getElementById('pm-phone').textContent = user.telephone || 'Not provided';
     document.getElementById('pm-since').textContent = user.date_inscription
         ? new Date(user.date_inscription).toLocaleDateString('en-GB', { year:'numeric', month:'short', day:'numeric' })
-        : '—';
+        : '-';
     document.getElementById('pm-status').innerHTML = user.statut === 'actif'
-        ? '<span style="color:#34D399;">● Active</span>'
-        : `<span style="color:#F87171;">● ${user.statut || '—'}</span>`;
+        ? '<span class="status-active"> Active</span>'
+        : `<span class="status-inactive"> ${user.statut || '-'}</span>`;
 
     document.getElementById('new-email').value = user.email || '';
-
     clearMessages();
     document.getElementById('confirm-pass-email').value = '';
     document.getElementById('current-password').value = '';
@@ -411,7 +452,7 @@ async function updateEmail() {
             localStorage.setItem('user', JSON.stringify(user));
             document.getElementById('pm-email').textContent = data.user.email;
             document.getElementById('confirm-pass-email').value = '';
-            showMsg('msg-email', 'success', 'Email updated successfully!');
+            showMsg('msg-email', 'success', 'Email updated successfully');
         } else {
             showMsg('msg-email', 'error', data.message || 'Update failed');
         }
@@ -449,7 +490,7 @@ async function updatePassword() {
             document.getElementById('current-password').value = '';
             document.getElementById('new-password').value = '';
             document.getElementById('confirm-new-password').value = '';
-            showMsg('msg-password', 'success', 'Password updated successfully!');
+            showMsg('msg-password', 'success', 'Password updated successfully');
         } else {
             showMsg('msg-password', 'error', data.message || 'Update failed');
         }
@@ -526,7 +567,7 @@ function saveCoordsCacheToDisk() {
 }
 
 function escapeHtml(str) {
-    if (str === undefined || str === null || str === '') return '—';
+    if (str === undefined || str === null || str === '') return '-';
     return String(str);
 }
 
@@ -572,7 +613,7 @@ function formatBotReply(text) {
         if (!tableRows.length) return;
         html = html.replace(/<div class="bot-spacer"><\/div>$/, '');
         html += '<table><thead><tr>';
-        html += tableRows[0].map(h => `<th>${inlineBold(h)}</th>`).join('') + '</table></thead><tbody>';
+        html += tableRows[0].map(h => `<th>${inlineBold(h)}</th>`).join('') + '</tr></thead><tbody>';
         for (let i = 1; i < tableRows.length; i++) {
             html += '<tr>' + tableRows[i].map(c => `<td>${inlineBold(c)}</td>`).join('') + '</tr>';
         }
@@ -591,7 +632,7 @@ function formatBotReply(text) {
         if (inTable) flushTable();
         if (/^###\s+/.test(line)) { html += `<div class="bot-section-title">${inlineBold(line.replace(/^###\s+/,''))}</div>`; lastWasSpace=false; continue; }
         if (/^\*\*(.+)\*\*$/.test(line)) { html += `<div class="bot-section-title">${line.replace(/^\*\*|\*\*$/g,'')}</div>`; lastWasSpace=false; continue; }
-        if (/^[•\-\*]\s+/.test(line)||/^\d+\.\s+/.test(line)) { html += `<div class="bot-bullet">• ${inlineBold(line.replace(/^[•\-\*]\s+/,'').replace(/^\d+\.\s+/,''))}</div>`; lastWasSpace=false; continue; }
+        if (/^[•\-\*]\s+/.test(line)||/^\d+\.\s+/.test(line)) { html += `<div class="bot-bullet"> ${inlineBold(line.replace(/^[•\-\*]\s+/,'').replace(/^\d+\.\s+/,''))}</div>`; lastWasSpace=false; continue; }
         if (line==='') { if (!lastWasSpace) { html += '<div class="bot-spacer"></div>'; lastWasSpace=true; } continue; }
         html += `<div class="bot-line">${inlineBold(line)}</div>`; lastWasSpace=false;
     }
@@ -615,17 +656,17 @@ function renderDashboardWithColumns(country, osmEmbedUrl) {
         { label:"IOC Code", value:country.ioc_code },
         { label:"ISO Alpha-3 Code", value:country.iso_alpha3_code },
         { label:"Continent", value:country.continent },
-        { label:"Population", value:country.population?country.population.toLocaleString():'—' },
-        { label:"Area (km²)", value:country.surface_area_km2?country.surface_area_km2.toLocaleString()+' km²':'—' },
-        { label:"GDP (USD)", value:country.gdp_current_us?country.gdp_current_us.toLocaleString()+' USD':'—' },
-        { label:"GDP per Capita (USD)", value:country.gdp_per_capita_current_us?country.gdp_per_capita_current_us.toLocaleString()+' USD':'—' },
+        { label:"Population", value:country.population?country.population.toLocaleString():'-' },
+        { label:"Area (km)", value:country.surface_area_km2?country.surface_area_km2.toLocaleString()+' km':'-' },
+        { label:"GDP (USD)", value:country.gdp_current_us?country.gdp_current_us.toLocaleString()+' USD':'-' },
+        { label:"GDP per Capita (USD)", value:country.gdp_per_capita_current_us?country.gdp_per_capita_current_us.toLocaleString()+' USD':'-' },
         { label:"Official Currency", value:country.official_currency },
         { label:"Official Languages", value:country.official_languages },
         { label:"Major Religion", value:country.religion },
-        { label:"Unemployment Rate", value:country.unemployment_rate?country.unemployment_rate+'%':'—' },
+        { label:"Unemployment Rate", value:country.unemployment_rate?country.unemployment_rate+'%':'-' },
         { label:"HDI", value:country.human_development_index },
-        { label:"Median Age", value:country.median_age?country.median_age+' years':'—' },
-        { label:"Urban Population (%)", value:country.urban_population_percent?country.urban_population_percent+'%':'—' }
+        { label:"Median Age", value:country.median_age?country.median_age+' years':'-' },
+        { label:"Urban Population (%)", value:country.urban_population_percent?country.urban_population_percent+'%':'-' }
     ];
 
     const identity=fields.slice(0,6), demography=fields.slice(6,9), economy=fields.slice(9,12), society=fields.slice(12,17);
@@ -642,13 +683,13 @@ function renderDashboardWithColumns(country, osmEmbedUrl) {
                <i class="fas fa-circle-notch"></i>
                <span>Loading map...</span>
            </div>
-           <iframe id="map-iframe" src="" frameborder="0" scrolling="no" allowfullscreen loading="lazy" style="display:none;"></iframe>`;
+           <iframe id="map-iframe" src="" frameborder="0" scrolling="no" allowfullscreen loading="lazy" class="hidden"></iframe>`;
 
     return `<div class="dashboard">
         ${mkCard('NATIONAL IDENTITY', identity)}
-        ${mkCard('DEMOGRAPHY &amp; TERRITORY', demography)}
-        ${mkCard('ECONOMY &amp; FINANCE', economy)}
-        ${mkCard('SOCIETY &amp; DEVELOPMENT', society)}
+        ${mkCard('DEMOGRAPHY AND TERRITORY', demography)}
+        ${mkCard('ECONOMY AND FINANCE', economy)}
+        ${mkCard('SOCIETY AND DEVELOPMENT', society)}
         <div class="card">
             <div class="card-header"><h3>GEOGRAPHIC MAP</h3></div>
             <div class="card-field"><div class="card-value">
@@ -660,8 +701,8 @@ function renderDashboardWithColumns(country, osmEmbedUrl) {
             <div class="card-header"><h3>NATIONAL FLAG</h3></div>
             <div class="card-field"><div class="card-value">
                 ${flagUrl
-                    ? `<img src="${flagUrl}" alt="Flag of ${escapeHtml(countryName)}" onclick="window.open('${flagUrl}','_blank')" onerror="this.style.display='none';this.nextElementSibling.style.display='block';"><div style="display:none;padding:1rem;color:var(--text-3);font-size:0.8rem;"><i class="fas fa-exclamation-circle"></i> Invalid flag URL</div>`
-                    : `<div style="padding:1.5rem;color:var(--text-3);font-size:0.8rem;"><i class="fas fa-flag"></i> Not available</div>`}
+                    ? `<img src="${flagUrl}" alt="Flag of ${escapeHtml(countryName)}" onclick="window.open('${flagUrl}','_blank')" onerror="this.style.display='none';this.nextElementSibling.style.display='block';"><div class="flag-error"><i class="fas fa-exclamation-circle"></i> Invalid flag URL</div>`
+                    : `<div class="flag-unavailable"><i class="fas fa-flag"></i> Not available</div>`}
             </div></div>
         </div>
     </div>`;
@@ -670,7 +711,6 @@ function renderDashboardWithColumns(country, osmEmbedUrl) {
 async function showCountryDashboard(country) {
     const container = document.getElementById('dashboard');
     const placeName = extractPlaceName(country.map_url, country.country_name_english || country.country_name_french || '');
-
     const cachedCoords = coordsCache[placeName];
 
     if (cachedCoords) {
@@ -684,15 +724,14 @@ async function showCountryDashboard(country) {
             const placeholder = document.getElementById('map-placeholder');
             if (iframe) {
                 iframe.src = buildOsmEmbed(coords.lat, coords.lng);
+                iframe.classList.remove('hidden');
                 iframe.style.display = 'block';
             }
-            if (placeholder) {
-                placeholder.style.display = 'none';
-            }
+            if (placeholder) placeholder.style.display = 'none';
         } else {
             const placeholder = document.getElementById('map-placeholder');
             if (placeholder) {
-                placeholder.innerHTML = '<i class="fas fa-map-marker-alt" style="animation:none;"></i> <span>Map unavailable</span>';
+                placeholder.innerHTML = '<i class="fas fa-map-marker-alt"></i> <span>Map unavailable</span>';
             }
         }
     }

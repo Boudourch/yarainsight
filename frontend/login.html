@@ -10,7 +10,6 @@
 </head>
 <body>
     <div class="auth-card"> 
-        <!-- Back Button Header -->
         <div class="auth-back">
             <button class="back-btn" onclick="history.back()">
                 <i class="fas fa-arrow-left"></i>
@@ -46,57 +45,31 @@
                 <i class="fas fa-sign-in-alt"></i>
                 Sign in
             </button>
-            <!-- Lien Mot de passe oublié ajouté ici -->
             <div class="forgot-password-link">
-                <a href="forgot-password.html"> Forgot password ?</a>
+                <a href="forgot-password.html">Forgot password?</a>
             </div>
             <p class="auth-footer">
                 Don't have an account? <a href="register.html">Sign up</a>
             </p>
         </form>
     </div>
-    
-    <!-- Manager Choice Overlay -->
-    <div id="manager-choice" class="manager-overlay">
-        <div class="manager-modal">
-            <div class="manager-modal__logo">
-                <i class="fas fa-chart-line"></i>
-                <span>Yara Insights</span>
-            </div>
-            <p class="manager-modal__subtitle">Welcome back, Manager! Where do you want to go?</p>
-            <div class="manager-modal__grid">
-                <button class="manager-card manager-card--admin" onclick="window.location.replace('admin.html')">
-                    <i class="fas fa-cog"></i>
-                    <p class="manager-card__title">Admin Panel</p>
-                    <p class="manager-card__desc">Manage users &amp; settings</p>
-                </button>
-                <button class="manager-card manager-card--countries" onclick="window.location.replace('countries.html')">
-                    <i class="fas fa-globe"></i>
-                    <p class="manager-card__title">Countries</p>
-                    <p class="manager-card__desc">View dashboards &amp; data</p>
-                </button>
-            </div>
-        </div>
-    </div>
+
     <script>
         const API_URL = 'http://localhost:5001/api';
 
-        function showManagerChoice() {
-            document.querySelector('.auth-card').style.display = 'none';
-            document.getElementById('manager-choice').classList.add('visible');
+        function redirectByRole(role) {
+            if (role === 'admin' || role === 'manager') {
+                window.location.replace('admin.html');
+            } else {
+                window.location.replace('countries.html');
+            }
         }
 
         // Check if already logged in
         const token = localStorage.getItem('token');
         if (token) {
             const user = JSON.parse(localStorage.getItem('user') || '{}');
-            if (user.role === 'admin') {
-                window.location.href = 'admin.html';
-            } else if (user.role === 'manager') {
-                showManagerChoice();
-            } else {
-                window.location.href = 'countries.html';
-            }
+            redirectByRole(user.role);
         }
 
         document.getElementById('login-form').addEventListener('submit', async (e) => {
@@ -124,14 +97,7 @@
                 if (res.ok && result.success) {
                     localStorage.setItem('token', result.token);
                     localStorage.setItem('user', JSON.stringify(result.user));
-
-                    if (result.user.role === 'admin') {
-                        window.location.replace('admin.html');
-                    } else if (result.user.role === 'manager') {
-                        showManagerChoice();
-                    } else {
-                        window.location.replace('countries.html');
-                    }
+                    redirectByRole(result.user.role);
                 } else {
                     msgDiv.innerHTML = '<div class="warning-message"><i class="fas fa-exclamation-triangle"></i> ' + (result.message || 'Invalid email or password') + '<br>Please sign up first</div>';
                 }
